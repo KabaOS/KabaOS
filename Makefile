@@ -6,14 +6,15 @@ JOBS=$(shell nproc)
 
 KERNEL=6.6.12
 MUSL=1.2.4
+BOOST=1.84.0
 
-download: download_kernel download_musl
-build: create_img create_initramfs build_musl build_init build_kernel cp_initramfs build_iso
+download: download_kernel download_musl download_boost
+build: create_img create_initramfs build_musl build_boost build_init build_kernel cp_initramfs build_iso
 
 # KERNEL
 
 download_kernel:
-	rm -rf "linux-kernel"
+	rm -rf "sources/linux-kernel"
 	curl "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/snapshot/linux-$(KERNEL).tar.gz" -o "linux.tar.gz"
 	tar -zxf "linux.tar.gz"
 	rm "linux.tar.gz"
@@ -30,7 +31,7 @@ build_kernel:
 # MUSL
 
 download_musl:
-	rm -rf "musl"
+	rm -rf "sources/musl"
 	curl "https://musl.libc.org/releases/musl-$(MUSL).tar.gz" -o "musl.tar.gz"
 	tar -zxf "musl.tar.gz"
 	rm "musl.tar.gz"
@@ -46,6 +47,20 @@ build_musl:
 	cp ../../build/initramfs/lib/musl-gcc.specs ../../build/musl-gcc-init.specs && \
 	sed -i 's/\.\.\/\.\.\//..\//g' ../../build/musl-gcc-init.specs
 
+# BOOST
+
+download_boost:
+	rm -rf "sources/boost"
+	curl -L "https://boostorg.jfrog.io/artifactory/main/release/$(BOOST)/source/boost_$(shell echo $(BOOST) | tr '.' '_').tar.gz" -o boost.tar.gz
+	tar -zxf "boost.tar.gz"
+	rm "boost.tar.gz"
+	mkdir -p sources
+	mv "boost_$(shell echo $(BOOST) | tr '.' '_')" "sources/boost"
+
+build_boost:
+	cd sources/boost && \
+	./bootstrap.sh --prefix=../../build/initramfs -with-toolset=gcc && \
+	./b2 install -j $(JOBS)
 
 # INITRAMFS
 
