@@ -7,9 +7,10 @@ JOBS=$(shell nproc)
 KERNEL=6.6.12
 MUSL=1.2.4
 BOOST=1.84.0
+ZLIB=1.3.1
 
-download: download_kernel download_musl download_boost
-build: create_img create_initramfs build_musl build_boost build_init build_kernel cp_initramfs build_iso
+download: download_kernel download_musl download_boost download_zlib
+build: create_img create_initramfs build_musl build_boost build_zlib build_init build_kernel cp_initramfs build_iso
 
 # KERNEL
 
@@ -61,6 +62,21 @@ build_boost:
 	cd sources/boost && \
 	./bootstrap.sh --prefix=../../build/initramfs -with-toolset=gcc && \
 	./b2 install -j $(JOBS)
+
+# ZLIB
+
+download_zlib:
+	rm -rf "sources/zlib"
+	curl "https://zlib.net/zlib-$(ZLIB).tar.gz" -o zlib.tar.gz
+	tar -zxf "zlib.tar.gz"
+	rm "zlib.tar.gz"
+	mkdir -p sources
+	mv "zlib-$(ZLIB)" "sources/zlib"
+
+build_zlib:
+	cd sources/zlib && \
+	./configure --prefix=../../build/initramfs && \
+	make install
 
 # INITRAMFS
 
