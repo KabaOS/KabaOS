@@ -1,6 +1,6 @@
-CC=gcc
-CFLAGS=-march=x86-64 -O2 -Wall
-JOBS=$(shell nproc)
+export CC=../../build/initramfs/bin/musl-gcc
+export CFLAGS=-march=x86-64 -O2 -Wall
+export JOBS=$(shell nproc)
 
 # VERSIONS
 
@@ -42,7 +42,7 @@ download_musl:
 build_musl:
 	cd sources/musl && \
 	mkdir -p ../../build/initramfs/usr/local/musl && \
-	./configure --prefix=../../build/initramfs --syslibdir=../../build/initramfs/lib x86_64 && \
+	CC=gcc ./configure --prefix=../../build/initramfs --syslibdir=../../build/initramfs/lib x86_64 && \
 	make "-j$(JOBS)" && \
 	make install && \
 	cp ../../build/initramfs/lib/musl-gcc.specs ../../build/musl-gcc-init.specs && \
@@ -91,6 +91,8 @@ cp_initramfs:
 
 # INIT
 
+build_init: export CC = gcc
+
 build_init:
 	@$(MAKE) -C init -f init.mk
 	cp init/init build/initramfs/etc
@@ -106,6 +108,7 @@ build_iso:
 	grub-mkrescue -o Cloak.iso build/mnt
 
 clean:
-	cd sources/linux-kernel && make clean
-	cd sources/musl && make clean
+	for i in sources/*; do \
+		make -C $$i clean; \
+	done
 	rm -rf build
