@@ -1,5 +1,6 @@
 export CC=../../build/initramfs/bin/musl-gcc
 export CFLAGS=-march=x86-64 -O2 -Wall
+export CXXFLAGS=-march=x86-64 -O2 -Wall
 export JOBS=$(shell nproc)
 
 # VERSIONS
@@ -10,6 +11,8 @@ KERNEL_HEADERS=4.19.88-2
 BOOST=1.84.0
 ZLIB=1.3.1
 OPENSSL=3.2.0
+
+all: download build
 
 download: download_kernel download_musl download_kernel_headers download_boost download_zlib download_openssl
 build: create_img create_initramfs build_musl build_kernel_headers build_boost build_zlib build_openssl build_init build_kernel cp_initramfs build_iso
@@ -75,7 +78,7 @@ download_boost:
 
 build_boost:
 	cd sources/boost && \
-	./bootstrap.sh --prefix=../../build/initramfs -with-toolset=gcc && \
+	./bootstrap.sh --prefix=../../build/initramfs --with-libraries=date_time,filesystem,program_options,system --with-toolset=gcc && \
 	./b2 install -j $(JOBS)
 
 # ZLIB
@@ -106,7 +109,7 @@ download_openssl:
 
 build_openssl:
 	cd sources/openssl && \
-	./Configure --prefix=$(shell pwd)/build/initramfs && \
+	./Configure --prefix=$(shell pwd)/build/initramfs no-docs && \
 	make "-j$(JOBS)" && \
 	make install
 
