@@ -6,11 +6,13 @@ export JOBS=$(shell nproc)
 
 KERNEL=6.6.12
 MUSL=1.2.4
+KERNEL_HEADERS=4.19.88-2
 BOOST=1.84.0
 ZLIB=1.3.1
+OPENSSL=3.2.0
 
-download: download_kernel download_musl download_boost download_zlib
-build: create_img create_initramfs build_musl build_boost build_zlib build_init build_kernel cp_initramfs build_iso
+download: download_kernel download_musl download_kernel_headers download_boost download_zlib download_openssl
+build: create_img create_initramfs build_musl build_kernel_headers build_boost build_zlib build_openssl build_init build_kernel cp_initramfs build_iso
 
 # KERNEL
 
@@ -48,6 +50,19 @@ build_musl:
 	cp ../../build/initramfs/lib/musl-gcc.specs ../../build/musl-gcc-init.specs && \
 	sed -i 's/\.\.\/\.\.\//..\//g' ../../build/musl-gcc-init.specs
 
+# KERNEL_HEADERS
+
+download_kernel_headers:
+	rm -rf "sources/kernel-headers"
+	curl -L "https://github.com/sabotage-linux/kernel-headers/archive/refs/tags/v$(KERNEL_HEADERS).tar.gz" -o "kernel-headers.tar.gz"
+	tar -zxf "kernel-headers.tar.gz"
+	rm "kernel-headers.tar.gz"
+	mkdir -p sources
+	mv "kernel-headers-$(KERNEL_HEADERS)" "sources/kernel-headers"
+
+build_kernel_headers:
+	cp -Lr sources/kernel-headers/x86_64/include/* build/initramfs/include
+
 # BOOST
 
 download_boost:
@@ -76,6 +91,23 @@ download_zlib:
 build_zlib:
 	cd sources/zlib && \
 	./configure --prefix=../../build/initramfs && \
+	make "-j$(JOBS)" && \
+	make install
+
+# ZLIB
+
+download_openssl:
+	rm -rf "sources/openssl"
+	curl -L "https://github.com/openssl/openssl/archive/refs/tags/openssl-$(OPENSSL).tar.gz" -o openssl.tar.gz
+	tar -zxf "openssl.tar.gz"
+	rm "openssl.tar.gz"
+	mkdir -p sources
+	mv "openssl-openssl-$(OPENSSL)" "sources/openssl"
+
+build_openssl:
+	cd sources/openssl && \
+	./Configure --prefix=$(shell pwd)/build/initramfs && \
+	make "-j$(JOBS)" && \
 	make install
 
 # INITRAMFS
