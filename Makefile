@@ -1,136 +1,85 @@
-export CC=../../build/initramfs/bin/musl-gcc
-export CFLAGS=-march=x86-64 -O2 -Wall
-export CXXFLAGS=-march=x86-64 -O2 -Wall
+export CC="gcc"
+
+export CFLAGS=-pipe -march=x86-64 -O2 -Wall
+export CXXFLAGS=$(CFLAGS)
+export LDFLAGS=-pipe -march=x86-64
 export JOBS=$(shell nproc)
+
+export PATH := $(shell pwd)/build/libraries/bin:$(PATH)
+export LIBRARY_PATH=/lib:/usr/lib:/usr/include
 
 # VERSIONS
 
+ALPINE=3.19.1
+ALPINE_MINI=3.19
+
 KERNEL=6.6.12
-MUSL=1.2.4
-KERNEL_HEADERS=4.19.88-2
-BOOST=1.84.0
-ZLIB=1.3.1
-OPENSSL=3.2.0
+I2PD=2.49.0-r1
+
+.PHONY: build
 
 all: download build
 
-download: download_kernel download_musl download_kernel_headers download_boost download_zlib download_openssl
-build: create_img create_initramfs build_musl build_kernel_headers build_boost build_zlib build_openssl build_init build_kernel cp_initramfs build_iso
+download: download_alpine download_kernel
+
+build: create_img build_alpine finish_initramfs build_kernel cp_initramfs \
+	build_iso
+
+# ALPINE
+
+download_alpine:
+	mkdir -p build/alpine
+	curl "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/releases/x86_64/alpine-minirootfs-$(ALPINE)-x86_64.tar.gz" -o build/alpine/alpine.tar.gz
+	cd build/alpine/ && tar -xzf alpine.tar.gz
+	rm build/alpine/alpine.tar.gz
+
+build_alpine:
+	mkdir -p build/alpine/
+	umount build/alpine/proc |:
+	umount build/alpine/dev |:
+	umount build/alpine/sys |:
+	mkdir -p build/alpine/proc
+	mount -t proc none build/alpine/proc
+	mkdir -p "build/alpine/dev"
+	mount --bind "/dev" "build/alpine/dev"
+	mount --make-private "build/alpine/dev"
+	mkdir -p "build/alpine/sys"
+	mount --bind "/sys" "build/alpine/sys"
+	mount --make-private "build/alpine/sys"
+	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
+	chroot build/alpine /bin/sh -c "apk add i2pd=$(I2PD)"
+	rm -rf build/alpine/etc/resolv.conf
+	umount build/alpine/proc
+	umount build/alpine/dev
+	umount build/alpine/sys
 
 # KERNEL
 
 download_kernel:
-	rm -rf "sources/linux-kernel"
+	rm -rf "build/cloak/sources/linux-kernel"
 	curl "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/snapshot/linux-$(KERNEL).tar.gz" -o "linux.tar.gz"
 	tar -zxf "linux.tar.gz"
 	rm "linux.tar.gz"
-	mkdir -p sources
-	mv "linux-$(KERNEL)" "sources/linux-kernel"
+	mkdir -p build
+	mv "linux-$(KERNEL)" "build/linux-kernel"
 
 build_kernel:
-	cp config/linux.config sources/linux-kernel/.config
-	cd sources/linux-kernel && \
+	cp config/linux.config build/linux-kernel/.config
+	cd build/linux-kernel && \
 	make "-j$(JOBS)" && \
-	INSTALL_PATH=../../build/mnt/boot make install
+	INSTALL_PATH="$(shell pwd)/build/mnt/boot" make install
 	rm -rf build/mnt/boot/*.old
-
-# MUSL
-
-download_musl:
-	rm -rf "sources/musl"
-	curl "https://musl.libc.org/releases/musl-$(MUSL).tar.gz" -o "musl.tar.gz"
-	tar -zxf "musl.tar.gz"
-	rm "musl.tar.gz"
-	mkdir -p sources
-	mv "musl-$(MUSL)" "sources/musl"
-
-build_musl:
-	cd sources/musl && \
-	mkdir -p ../../build/initramfs/usr/local/musl && \
-	CC=gcc ./configure --prefix=../../build/initramfs --syslibdir=../../build/initramfs/lib x86_64 && \
-	make "-j$(JOBS)" && \
-	make install && \
-	cp ../../build/initramfs/lib/musl-gcc.specs ../../build/musl-gcc-init.specs && \
-	sed -i 's/\.\.\/\.\.\//..\//g' ../../build/musl-gcc-init.specs
-
-# KERNEL_HEADERS
-
-download_kernel_headers:
-	rm -rf "sources/kernel-headers"
-	curl -L "https://github.com/sabotage-linux/kernel-headers/archive/refs/tags/v$(KERNEL_HEADERS).tar.gz" -o "kernel-headers.tar.gz"
-	tar -zxf "kernel-headers.tar.gz"
-	rm "kernel-headers.tar.gz"
-	mkdir -p sources
-	mv "kernel-headers-$(KERNEL_HEADERS)" "sources/kernel-headers"
-
-build_kernel_headers:
-	cp -Lr sources/kernel-headers/x86_64/include/* build/initramfs/include
-
-# BOOST
-
-download_boost:
-	rm -rf "sources/boost"
-	curl -L "https://boostorg.jfrog.io/artifactory/main/release/$(BOOST)/source/boost_$(shell echo $(BOOST) | tr '.' '_').tar.gz" -o boost.tar.gz
-	tar -zxf "boost.tar.gz"
-	rm "boost.tar.gz"
-	mkdir -p sources
-	mv "boost_$(shell echo $(BOOST) | tr '.' '_')" "sources/boost"
-
-build_boost:
-	cd sources/boost && \
-	./bootstrap.sh --prefix=../../build/initramfs --with-libraries=date_time,filesystem,program_options,system --with-toolset=gcc && \
-	./b2 install -j $(JOBS)
-
-# ZLIB
-
-download_zlib:
-	rm -rf "sources/zlib"
-	curl "https://zlib.net/zlib-$(ZLIB).tar.gz" -o zlib.tar.gz
-	tar -zxf "zlib.tar.gz"
-	rm "zlib.tar.gz"
-	mkdir -p sources
-	mv "zlib-$(ZLIB)" "sources/zlib"
-
-build_zlib:
-	cd sources/zlib && \
-	./configure --prefix=../../build/initramfs && \
-	make "-j$(JOBS)" && \
-	make install
-
-# ZLIB
-
-download_openssl:
-	rm -rf "sources/openssl"
-	curl -L "https://github.com/openssl/openssl/archive/refs/tags/openssl-$(OPENSSL).tar.gz" -o openssl.tar.gz
-	tar -zxf "openssl.tar.gz"
-	rm "openssl.tar.gz"
-	mkdir -p sources
-	mv "openssl-openssl-$(OPENSSL)" "sources/openssl"
-
-build_openssl:
-	cd sources/openssl && \
-	./Configure --prefix=$(shell pwd)/build/initramfs no-docs && \
-	make "-j$(JOBS)" && \
-	make install
 
 # INITRAMFS
 
-create_initramfs:
-	mkdir -p build/initramfs
-	cp -r initramfs/* build/initramfs
-	mknod -m 622 build/initramfs/dev/console c 5 1 |:
-	mknod -m 622 build/initramfs/dev/tty0 c 4 0 |:
+finish_initramfs:
+	mkdir -p build/alpine/dev
+	mknod -m 622 build/alpine/dev/console c 5 1 |:
+	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
+	cp init/init.sh build/alpine/etc/init
 
 cp_initramfs:
-	cp sources/linux-kernel/usr/initramfs_data.cpio "build/mnt/boot/initramfs-$(KERNEL).img"
-
-# INIT
-
-build_init: export CC = gcc
-
-build_init:
-	@$(MAKE) -C init -f init.mk
-	cp init/init build/initramfs/etc
+	cp build/linux-kernel/usr/initramfs_data.cpio "build/mnt/boot/initramfs-$(KERNEL).img"
 
 # ISO
 
@@ -143,7 +92,7 @@ build_iso:
 	grub-mkrescue -o Cloak.iso build/mnt
 
 clean:
-	for i in sources/*; do \
-		make -C $$i clean; \
-	done
+	umount build/alpine/proc
+	umount build/alpine/dev
+	umount build/alpine/sys
 	rm -rf build

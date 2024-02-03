@@ -1,0 +1,10 @@
+https://github.com/arthurmelton/Lumon-OS/blob/master/Makefile
+https://github.com/arthurmelton/Cloak-OS
+https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/?h=v6.6.12
+https://madaidans-insecurities.github.io/guides/linux-hardening.html#firewalls
+https://github.com/GrapheneOS/hardened_malloc/
+https://www.kicksecure.com/wiki/Hardened-kernel
+https://git.savannah.gnu.org/cgit/coreutils.git/refs/
+https://www.linuxfromscratch.org/lfs/view/development/chapter06/bash.html
+https://code.whatever.social/questions/17896751/makefile-use-multiple-makefiles
+https://musl.libc.org/
