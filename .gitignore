@@ -1,7 +1,2 @@
 build
-sources
 Cloak.iso
-
-init/init
-
-*.o
