@@ -21,8 +21,7 @@ all: download build
 
 download: download_alpine download_kernel
 
-build: create_img build_alpine finish_initramfs build_kernel cp_initramfs \
-	build_iso
+build: create_img build_alpine finish_initramfs build_kernel build_iso
 
 # ALPINE
 
@@ -47,7 +46,7 @@ build_alpine:
 	mount --make-private "build/alpine/sys"
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
-	chroot build/alpine /bin/sh -c "apk update && apk add i2pd=$(I2PD) gnome=$(GNOME) librewolf=$(LIBREWOLF)"
+	chroot build/alpine /bin/sh -c "apk update && apk add i2pd=$(I2PD) gnome=$(GNOME) librewolf=$(LIBREWOLF) && apk del alpine-baselayout alpine-keys apk-tools" |: # Should only fail when we have already deleted unused apk utils
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
 	umount build/alpine/dev
@@ -74,12 +73,12 @@ build_kernel:
 
 finish_initramfs:
 	mkdir -p build/alpine/dev
+	mknod -m 622 build/alpine/dev/null c 1 3 |:
 	mknod -m 622 build/alpine/dev/console c 5 1 |:
 	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
+	mkdir -p build/alpine/run/dbus
 	cp init/init.sh build/alpine/etc/init
-
-cp_initramfs:
-	cp build/linux-kernel/usr/initramfs_data.cpio "build/mnt/boot/initramfs-$(KERNEL).img"
+	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | gzip --best > ../mnt/boot/initramfs.cpio.gz
 
 # ISO
 
