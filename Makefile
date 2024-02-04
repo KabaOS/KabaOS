@@ -13,6 +13,7 @@ ALPINE_MINI=3.19
 KERNEL=6.6.12
 I2PD=2.49.0-r1
 GNOME=45.0-r0
+LIBREWOLF=122.0_p2-r0
 
 .PHONY: build
 
@@ -45,7 +46,8 @@ build_alpine:
 	mount --bind "/sys" "build/alpine/sys"
 	mount --make-private "build/alpine/sys"
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
-	chroot build/alpine /bin/sh -c "apk add i2pd=$(I2PD) gnome=$(GNOME)"
+	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
+	chroot build/alpine /bin/sh -c "apk update && apk add i2pd=$(I2PD) gnome=$(GNOME) librewolf=$(LIBREWOLF)"
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
 	umount build/alpine/dev
@@ -90,7 +92,7 @@ build_iso:
 	grub-mkrescue -o Cloak.iso build/mnt
 
 clean:
-	umount build/alpine/proc
-	umount build/alpine/dev
-	umount build/alpine/sys
+	umount build/alpine/proc |:
+	umount build/alpine/dev |:
+	umount build/alpine/sys |:
 	rm -rf build
