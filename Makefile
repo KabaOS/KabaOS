@@ -5,9 +5,6 @@ export CXXFLAGS=$(CFLAGS)
 export LDFLAGS=-pipe -march=x86-64
 export JOBS=$(shell nproc)
 
-export PATH := $(shell pwd)/build/libraries/bin:$(PATH)
-export LIBRARY_PATH=/lib:/usr/lib:/usr/include
-
 # VERSIONS
 
 ALPINE=3.19.1
@@ -15,6 +12,7 @@ ALPINE_MINI=3.19
 
 KERNEL=6.6.12
 I2PD=2.49.0-r1
+GNOME=45.0-r0
 
 .PHONY: build
 
@@ -47,7 +45,7 @@ build_alpine:
 	mount --bind "/sys" "build/alpine/sys"
 	mount --make-private "build/alpine/sys"
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
-	chroot build/alpine /bin/sh -c "apk add i2pd=$(I2PD)"
+	chroot build/alpine /bin/sh -c "apk add i2pd=$(I2PD) gnome=$(GNOME)"
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
 	umount build/alpine/dev
