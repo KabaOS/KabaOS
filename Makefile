@@ -96,7 +96,7 @@ finish_initramfs:
 	mknod -m 622 build/alpine/dev/console c 5 1 |:
 	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
 	cp init/init.sh build/alpine/etc/init
-	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | gzip --best > ../mnt/boot/initramfs.cpio.gz
+	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zstd
 
 # ISO
 
