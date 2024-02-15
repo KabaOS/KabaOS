@@ -11,6 +11,8 @@ ALPINE=3.19.1
 ALPINE_MINI=3.19
 
 KERNEL=6.6.12
+FIRMWARE=20231111-r1
+REGDB=2023.09.01-r0
 SHADOW_LOGIN=4.14.2-r0
 AGETTY= 2.39.3-r0
 I2PD=2.49.0-r1
@@ -49,7 +51,7 @@ build_alpine:
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
-	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gnome=$(GNOME) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN)" || true
+	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gnome=$(GNOME) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN) linux-firmware=$(FIRMWARE) wireless-regdb=$(REGDB)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache /root/.cache /root/.ICEauthority /root/.ash_history /root/.cache" || true
 	chroot build/alpine /bin/ash -c "useradd -m Cloak" || true
