@@ -12,16 +12,20 @@ ALPINE_MINI=3.19
 
 KERNEL=6.6.12
 
-AGETTY= 2.39.3-r0
+AGETTY=2.39.3-r0
 DBUS_X11=1.14.10-r0
 EUDEV=3.2.14-r0
 GDM=45.0.1-r0
-GNOME_APPS_CORE=45.0-r0
+GNOME_CONSOLE=45.0-r1
+GNOME_TEXT_EDITOR=45.2-r0
 I2PD=2.49.0-r1
 LIBREWOLF=122.0_p2-r0
 LINUX_FIRMWARE=20231111-r1
 MESA_DRI_GALLIUM=23.3.1-r0
+NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
+NETWORKMANAGER_WIFI=1.44.2-r1
+POLKIT_COMMON=124-r0
 SHADOW_LOGIN=4.14.2-r0
 UDEV_INIT_SCRIPTS=35-r1
 UDEV_INIT_SCRIPTS_OPENRC=35-r1
@@ -62,7 +66,7 @@ build_alpine:
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
-	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gdm=$(GDM) gnome-apps-core=$(GNOME_APPS_CORE) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN) linux-firmware=$(LINUX_FIRMWARE) wireless-regdb=$(WIRELESS_REGDB) xorg-server=$(XORG_SERVER) xf86-input-libinput=$(XF86_INPUT_LIBINPUT) eudev=$(EUDEV) mesa-dri-gallium=$(MESA_DRI_GALLIUM) xinit=$(XINIT) udev-init-scripts=$(UDEV_INIT_SCRIPTS) udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) dbus-x11=$(DBUS_X11) networkmanager=$(NETWORKMANAGER)" || true
+	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gdm=$(GDM) gnome-console=$(GNOME_CONSOLE) gnome-text-editor=$(GNOME_TEXT_EDITOR) nautilus=$(NAUTILUS) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN) linux-firmware=$(LINUX_FIRMWARE) wireless-regdb=$(WIRELESS_REGDB) xorg-server=$(XORG_SERVER) xf86-input-libinput=$(XF86_INPUT_LIBINPUT) eudev=$(EUDEV) mesa-dri-gallium=$(MESA_DRI_GALLIUM) xinit=$(XINIT) udev-init-scripts=$(UDEV_INIT_SCRIPTS) udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) dbus-x11=$(DBUS_X11) networkmanager=$(NETWORKMANAGER) networkmanager-wifi=$(NETWORKMANAGER_WIFI) polkit-common=$(POLKIT_COMMON)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
@@ -70,6 +74,7 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "useradd -m Cloak" || true
 	chroot build/alpine /bin/ash -c "mkdir -p /run/openrc" || true
 	chroot build/alpine /bin/ash -c "touch /run/openrc/softlevel" || true
+	chroot build/alpine /bin/ash -c "touch /etc/fstab" || true
 	chroot build/alpine /bin/ash -c "rc-update add openrc-settingsd boot" || true
 	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
 	chroot build/alpine /bin/ash -c "rc-update add elogind" || true
