@@ -13,8 +13,10 @@ ALPINE_MINI=3.19
 KERNEL=6.6.12
 
 AGETTY= 2.39.3-r0
+DBUS_X11=1.14.10-r0
 EUDEV=3.2.14-r0
-GNOME=45.0-r0
+GNOME_APPS_CORE=45.0-r0
+GDM=45.0.1-r0
 I2PD=2.49.0-r1
 LIBREWOLF=122.0_p2-r0
 LINUX_FIRMWARE=20231111-r1
@@ -59,14 +61,11 @@ build_alpine:
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
-	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gnome=$(GNOME) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN) linux-firmware=$(LINUX_FIRMWARE) wireless-regdb=$(WIRELESS_REGDB) xorg-server=$(XORG_SERVER) xf86-input-libinput=$(XF86_INPUT_LIBINPUT) eudev=$(EUDEV) mesa-dri-gallium=$(MESA_DRI_GALLIUM) xinit=$(XINIT) udev-init-scripts=$(UDEV_INIT_SCRIPTS) udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC)" || true
+	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gdm=$(GDM) gnome-apps-core=$(GNOME_APPS_CORE) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN) linux-firmware=$(LINUX_FIRMWARE) wireless-regdb=$(WIRELESS_REGDB) xorg-server=$(XORG_SERVER) xf86-input-libinput=$(XF86_INPUT_LIBINPUT) eudev=$(EUDEV) mesa-dri-gallium=$(MESA_DRI_GALLIUM) xinit=$(XINIT) udev-init-scripts=$(UDEV_INIT_SCRIPTS) udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) dbus-x11=$(DBUS_X11)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-settle" || true
-	chroot build/alpine /bin/ash -c "rc-service --ifstopped udev start" || true
-	chroot build/alpine /bin/ash -c "rc-service --ifstopped udev-trigger start" || true
-	chroot build/alpine /bin/ash -c "rc-service --ifstopped udev-settle start" || true
 	chroot build/alpine /bin/ash -c "useradd -m Cloak" || true
 	chroot build/alpine /bin/ash -c "mkdir -p /run/openrc" || true
 	chroot build/alpine /bin/ash -c "touch /run/openrc/softlevel" || true
@@ -78,9 +77,7 @@ build_alpine:
 	mkdir -p build/alpine/run/dbus
 	mkdir -p build/alpine/var/run/dbus
 	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
-	chroot build/alpine /bin/ash -c "echo \"startx /usr/bin/gnome-session\" > /bin/gnome-login" || true
-	chroot build/alpine /bin/ash -c "chmod +x /bin/gnome-login" || true
-	chroot build/alpine /bin/ash -c "chsh -s /bin/gnome-login Cloak" || true
+	chroot build/alpine /bin/ash -c "echo \"rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11\" > /home/Cloak/.profile" || true
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache /root/.cache /root/.ICEauthority /root/.ash_history /root/.cache" || true
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
