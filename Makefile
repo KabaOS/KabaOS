@@ -40,7 +40,7 @@ all: download build
 
 download: download_alpine download_kernel
 
-build: create_img build_alpine build_kernel finish_initramfs build_iso
+build: create_img build_kernel build_alpine finish_initramfs build_iso
 
 # ALPINE
 
@@ -84,6 +84,8 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
 	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile" || true
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache /root/.cache /root/.ICEauthority /root/.ash_history /root/.cache" || true
+	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
+	find build/alpine/lib/firmware -type f | sed 's/....$//' | xargs -I{} ln -fsr {}.zst {}
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
 	umount build/alpine/dev
