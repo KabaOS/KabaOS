@@ -87,27 +87,6 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "rc-update add i2pd" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnsmasq" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnscrypt-proxy" || true
-	cp config/dnsmasq.conf build/alpine/etc/dnsmasq.conf || true
-	mkdir -p build/apline/etc/dnscrypt-proxy
-	cp config/dnscrypt-proxy.toml build/alpine/etc/dnscrypt-proxy/dnscrypt-proxy.toml
-	echo "9.9.9.10 dns10.quad9.net" >> build/alpine/etc/hosts
-	mkdir -p "build/alpine/root"
-	cp config/iptables.rules build/alpine/root/iptables.rules || true
-	chroot build/alpine /bin/ash -c 'sed -i "s/\$$I2PD_ID/$$(id -u i2pd)/" /root/iptables.rules' || true
-	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules' || true
-	chroot build/alpine /bin/ash -c 'chown -R root:root "/root"' || true
-	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
-	chroot build/alpine /bin/ash -c 'chmod -R 600 "/root"' || true
-	mkdir -p build/alpine/run/dbus
-	mkdir -p build/alpine/var/run/dbus
-	mkdir -p build/alpine/etc/NetworkManager/conf.d
-	printf "[main]\ndns=dnsmasq" > build/alpine/etc/NetworkManager/conf.d/dns.conf
-	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
-	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile" || true
-	chroot build/alpine /bin/ash -c "rm -rf /var/cache /root/.cache /root/.ICEauthority /root/.ash_history" || true
-	mkdir -p build/alpine/var/cache
-	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
-	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
 	umount build/alpine/dev
@@ -138,6 +117,27 @@ finish_initramfs:
 	mknod -m 622 build/alpine/dev/console c 5 1 |:
 	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
 	cp init/init.sh build/alpine/etc/init
+	cp config/dnsmasq.conf build/alpine/etc/dnsmasq.conf
+	mkdir -p build/apline/etc/dnscrypt-proxy
+	cp config/dnscrypt-proxy.toml build/alpine/etc/dnscrypt-proxy/dnscrypt-proxy.toml
+	echo "9.9.9.10 dns10.quad9.net" >> build/alpine/etc/hosts
+	mkdir -p "build/alpine/root"
+	cp config/iptables.rules build/alpine/root/iptables.rules || true
+	chroot build/alpine /bin/ash -c 'sed -i "s/\$$I2PD_ID/$$(id -u i2pd)/" /root/iptables.rules' || true
+	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules' || true
+	chroot build/alpine /bin/ash -c 'chown -R root:root "/root"' || true
+	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
+	chroot build/alpine /bin/ash -c 'chmod -R 600 "/root"' || true
+	mkdir -p build/alpine/run/dbus
+	mkdir -p build/alpine/var/run/dbus
+	mkdir -p build/alpine/etc/NetworkManager/conf.d
+	printf "[main]\ndns=dnsmasq" > build/alpine/etc/NetworkManager/conf.d/dns.conf
+	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
+	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile" || true
+	chroot build/alpine /bin/ash -c "rm -rf /var/cache /root/.cache /root/.ICEauthority /root/.ash_history" || true
+	mkdir -p build/alpine/var/cache
+	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
+	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
 	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zstd
 
 # ISO
