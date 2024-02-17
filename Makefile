@@ -117,6 +117,7 @@ finish_initramfs:
 	mknod -m 622 build/alpine/dev/console c 5 1 |:
 	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
 	cp init/init.sh build/alpine/etc/init
+	echo "b08dfa6083e7567a1921a715000001fb" > build/alpine/etc/machine-id
 	cp config/dnsmasq.conf build/alpine/etc/dnsmasq.conf
 	mkdir -p build/apline/etc/dnscrypt-proxy
 	cp config/dnscrypt-proxy.toml build/alpine/etc/dnscrypt-proxy/dnscrypt-proxy.toml
