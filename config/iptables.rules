@@ -13,7 +13,10 @@
 -A INPUT -p udp -j REJECT --reject-with icmp-port-unreachable
 -A INPUT -p tcp -j REJECT --reject-with tcp-reset
 -A INPUT -j REJECT --reject-with icmp-proto-unreachable
--A OUTPUT -p udp -j DROP
+-A OUTPUT -p udp -m owner --uid-owner $I2PD_ID -j ACCEPT
+-A OUTPUT -p tcp -m owner --uid-owner $I2PD_ID -j ACCEPT
+-A OUTPUT -p tcp -m owner --uid-owner $DNSCRYPT_ID -j ACCEPT
+-A OUTPUT -p all -j DROP
 COMMIT
 *nat
 :PREROUTING ACCEPT [0:0]
