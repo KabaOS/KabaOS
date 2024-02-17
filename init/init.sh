@@ -1,6 +1,6 @@
 #!/bin/sh
 
-mount -t proc none /proc
+mount -o nosuid,nodev,noexec,hidepid=2 -t proc none /proc
 mount -t sysfs none /sys
 
 iptables-restore < /root/iptables.rules
