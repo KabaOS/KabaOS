@@ -1,0 +1,18 @@
+*filter
+:INPUT DROP [250:50086]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [1855:693962]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A OUTPUT -o lo -j ACCEPT
+COMMIT
+*nat
+:PREROUTING ACCEPT [0:0]
+:INPUT ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+:POSTROUTING ACCEPT [0:0]
+-A OUTPUT -p tcp -m owner --uid-owner $I2PD_ID -j ACCEPT
+-A OUTPUT -p tcp -m owner --uid-owner $DNSCRYPT_ID -j ACCEPT
+-A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport 7070 -j DNAT --to-destination 127.0.0.1:7070
+-A OUTPUT -p tcp -j DNAT --to-destination 127.0.0.1:4444
+COMMIT

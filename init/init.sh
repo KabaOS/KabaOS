@@ -3,7 +3,9 @@
 mount -t proc none /proc
 mount -t sysfs none /sys
 
+iptables-restore < /root/iptables.rules
+
 openrc -qq
-/bin/hostname OS
+hostname OS
 
 agetty -cJn -a Cloak tty1 linux

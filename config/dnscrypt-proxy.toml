@@ -1,0 +1,5 @@
+listen_addresses = ['127.0.0.1:1053']
+server_names = ['quad9']
+
+[static.'quad9']
+stamp = 'sdns://AgYAAAAAAAAACDkuOS45LjEwICoV9dastufAkBreTrvHQ7LM1IkDK0bhZC8Gk2gwASWKE2RuczEwLnF1YWQ5Lm5ldDo0NDMKL2Rucy1xdWVyeQ'
