@@ -214,7 +214,7 @@ config_networkmanager:
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
-	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile"
+	cp init/post_init.sh build/alpine/home/Cloak/.profile
 
 clean:
 	umount build/alpine/proc |:
