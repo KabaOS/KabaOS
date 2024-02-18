@@ -74,7 +74,33 @@ build_alpine:
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
-	chroot build/alpine /bin/ash -c "apk add i2pd=$(I2PD) gdm=$(GDM) gnome-console=$(GNOME_CONSOLE) gnome-text-editor=$(GNOME_TEXT_EDITOR) nautilus=$(NAUTILUS) librewolf=$(LIBREWOLF) agetty=$(AGETTY) shadow-login=$(SHADOW_LOGIN) linux-firmware=$(LINUX_FIRMWARE) wireless-regdb=$(WIRELESS_REGDB) xorg-server=$(XORG_SERVER) xf86-input-libinput=$(XF86_INPUT_LIBINPUT) eudev=$(EUDEV) mesa-dri-gallium=$(MESA_DRI_GALLIUM) xinit=$(XINIT) udev-init-scripts=$(UDEV_INIT_SCRIPTS) udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) dbus-x11=$(DBUS_X11) networkmanager=$(NETWORKMANAGER) networkmanager-wifi=$(NETWORKMANAGER_WIFI) polkit-common=$(POLKIT_COMMON) iptables=$(IPTABLES) curl=$(CURL) dnsmasq=$(DNSMASQ) dnscrypt-proxy=$(DNSCRYPT_PROXY) dnscrypt-proxy-openrc=$(DNSCRYPT_PROXY_OPENRC)" || true
+	chroot build/alpine /bin/ash -c "apk add \
+		agetty=$(AGETTY) \
+		curl=$(CURL) \
+		dbus-x11=$(DBUS_X11) \
+		dnscrypt-proxy-openrc=$(DNSCRYPT_PROXY_OPENRC) \
+		dnscrypt-proxy=$(DNSCRYPT_PROXY) \
+		dnsmasq=$(DNSMASQ) \
+		eudev=$(EUDEV) \
+		gdm=$(GDM) \
+		gnome-console=$(GNOME_CONSOLE) \
+		gnome-text-editor=$(GNOME_TEXT_EDITOR) \
+		i2pd=$(I2PD) \
+		iptables=$(IPTABLES) \
+		librewolf=$(LIBREWOLF) \
+		linux-firmware=$(LINUX_FIRMWARE) \
+		mesa-dri-gallium=$(MESA_DRI_GALLIUM) \
+		nautilus=$(NAUTILUS) \
+		networkmanager-wifi=$(NETWORKMANAGER_WIFI) \
+		networkmanager=$(NETWORKMANAGER) \
+		polkit-common=$(POLKIT_COMMON) \
+		shadow-login=$(SHADOW_LOGIN) \
+		udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) \
+		udev-init-scripts=$(UDEV_INIT_SCRIPTS) \
+		wireless-regdb=$(WIRELESS_REGDB) \
+		xf86-input-libinput=$(XF86_INPUT_LIBINPUT) \
+		xinit=$(XINIT) \
+		xorg-server=$(XORG_SERVER)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
