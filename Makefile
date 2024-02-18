@@ -136,6 +136,9 @@ finish_initramfs:
 	printf "[device]\nwifi.scan-rand-mac-address=yes\n[connection]\nwifi.cloned-mac-address=random\nethernet.cloned-mac-address=random\nconnection.stable-id=${CONNECTION}/${BOOT}" > build/alpine/etc/NetworkManager/conf.d/00-macrandomize.conf
 	printf "[main]\nhostname-mode=none" > build/alpine/etc/NetworkManager/conf.d/hostname.conf
 	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
+	mkdir -p build/alpine/usr/lib/librewolf/defaults/perf
+	printf 'pref("general.config.filename", "librewolf.cfg");\npref("general.config.obscure_value", 0);\n' > build/alpine/usr/lib/librewolf/defaults/perf/autoconfig.js
+	cp config/librewolf.cfg build/alpine/usr/lib/librewolf/librewolf.cfg
 	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile" || true
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache /root/.cache /root/.ICEauthority /root/.ash_history" || true
 	mkdir -p build/alpine/var/cache
