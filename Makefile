@@ -15,11 +15,14 @@ KERNEL=6.6.12
 AGETTY=2.39.3-r0
 CURL=8.5.0-r0
 DBUS_X11=1.14.10-r0
+DNSCRYPT_PROXY=2.1.5-r2
+DNSCRYPT_PROXY_OPENRC=2.1.5-r2
 DNSMASQ=2.90-r0
 EUDEV=3.2.14-r0
 GDM=45.0.1-r0
 GNOME_CONSOLE=45.0-r1
 GNOME_TEXT_EDITOR=45.2-r0
+HARDENED_MALLOC=12-r1
 I2PD=2.49.0-r1
 IPTABLES=1.8.10-r3
 LIBREWOLF=122.0.1_p2-r0
@@ -36,8 +39,6 @@ WIRELESS_REGDB=2023.09.01-r0
 XF86_INPUT_LIBINPUT=1.4.0-r0
 XINIT=1.4.2-r1
 XORG_SERVER=21.1.11-r0
-DNSCRYPT_PROXY=2.1.5-r2
-DNSCRYPT_PROXY_OPENRC=2.1.5-r2
 
 .PHONY: build
 
@@ -85,6 +86,7 @@ build_alpine:
 		gdm=$(GDM) \
 		gnome-console=$(GNOME_CONSOLE) \
 		gnome-text-editor=$(GNOME_TEXT_EDITOR) \
+		hardened-malloc=$(HARDENED_MALLOC) \
 		i2pd=$(I2PD) \
 		iptables=$(IPTABLES) \
 		librewolf=$(LIBREWOLF) \
@@ -184,6 +186,10 @@ CONFIG_TARGETS += config_firmware
 config_firmware:
 	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
 	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
+
+CONFIG_TARGETS += config_hardened_malloc
+config_hardened_malloc:
+	echo "/usr/lib/libhardened_malloc.so" > build/alpine/etc/ld.so.preload
 
 CONFIG_TARGETS += config_init
 config_init:
