@@ -11,6 +11,7 @@ ALPINE=3.19.1
 ALPINE_MINI=3.19
 
 KERNEL=6.6.12
+LINUX_HARDENED=6.6.12-hardened1
 
 AMD_UCODE=20240115-r0
 INTEL_UCODE=20231114-r0
@@ -142,6 +143,8 @@ download_kernel:
 	rm "linux.tar.gz"
 	mkdir -p build
 	mv "linux-$(KERNEL)" "build/linux-kernel"
+	curl "https://github.com/anthraxx/linux-hardened/releases/download/$(LINUX_HARDENED)/linux-hardened-$(LINUX_HARDENED).patch" -o build/linux-kernel/linux-hardened.patch
+	cd build/linux-kernel && patch -Np1 < linux-hardened.patch
 
 build_kernel:
 	cp config/linux.config build/linux-kernel/.config
