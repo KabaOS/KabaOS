@@ -215,7 +215,7 @@ CONFIG_TARGETS += config_networkmanager
 config_networkmanager:
 	mkdir -p build/alpine/etc/NetworkManager/conf.d
 	printf "[main]\ndns=dnsmasq" > build/alpine/etc/NetworkManager/conf.d/dns.conf
-	printf "[device]\nwifi.scan-rand-mac-address=yes\n[connection]\nwifi.cloned-mac-address=random\nethernet.cloned-mac-address=random\nconnection.stable-id=${CONNECTION}/${BOOT}" > build/alpine/etc/NetworkManager/conf.d/00-macrandomize.conf
+	cp config/macaddress.conf build/alpine/etc/NetworkManager/conf.d/00-macrandomize.conf
 	printf "[main]\nhostname-mode=none" > build/alpine/etc/NetworkManager/conf.d/hostname.conf
 
 CONFIG_TARGETS += config_user_init
