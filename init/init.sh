@@ -5,6 +5,9 @@ mount -t sysfs none /sys
 
 iptables-restore < /root/iptables.rules
 
+rfkill block all
+rfkill unblock wifi
+
 openrc -qq
 hostname OS
 
