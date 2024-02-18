@@ -90,6 +90,10 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "rc-update add i2pd" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnsmasq" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnscrypt-proxy" || true
+	mkdir -p "build/alpine/root"
+	chroot build/alpine /bin/ash -c 'chown -R root:root "/root"' || true
+	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
+	chroot build/alpine /bin/ash -c 'chmod -R 600 "/root"' || true
 	rm -rf build/alpine/etc/resolv.conf
 	umount build/alpine/proc
 	umount build/alpine/dev
@@ -134,39 +138,46 @@ build_iso:
 
 # CONFIG
 
-CONFIG_TARGETS += config_init
-config_init:
-	cp init/init.sh build/alpine/etc/init
-
-CONFIG_TARGETS += config_machine_id
-config_machine_id:
-	echo "b08dfa6083e7567a1921a715000001fb" > build/alpine/etc/machine-id
-
-CONFIG_TARGETS += config_dnsmasq
-config_dnsmasq:
-	cp config/dnsmasq.conf build/alpine/etc/dnsmasq.conf
-
 CONFIG_TARGETS += config_cryptdns
 config_cryptdns:
 	mkdir -p build/apline/etc/dnscrypt-proxy
 	cp config/dnscrypt-proxy.toml build/alpine/etc/dnscrypt-proxy/dnscrypt-proxy.toml
 	echo "9.9.9.10 dns10.quad9.net" >> build/alpine/etc/hosts
 
-CONFIG_TARGETS += config_iptables
-config_iptables:
-	mkdir -p "build/alpine/root"
-	cp config/iptables.rules build/alpine/root/iptables.rules || true
-	chroot build/alpine /bin/ash -c 'sed -i "s/\$$I2PD_ID/$$(id -u i2pd)/" /root/iptables.rules' || true
-	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules' || true
-	chroot build/alpine /bin/ash -c 'chown -R root:root "/root"' || true
-	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
-	chroot build/alpine /bin/ash -c 'chmod -R 600 "/root"' || true
-
 CONFIG_TARGETS += config_dbus
 config_dbus:
 	mkdir -p build/alpine/run/dbus
 	mkdir -p build/alpine/var/run/dbus
-	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
+	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
+
+CONFIG_TARGETS += config_dnsmasq
+config_dnsmasq:
+	cp config/dnsmasq.conf build/alpine/etc/dnsmasq.conf
+
+CONFIG_TARGETS += config_firmware
+config_firmware:
+	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
+	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
+
+CONFIG_TARGETS += config_init
+config_init:
+	cp init/init.sh build/alpine/etc/init
+
+CONFIG_TARGETS += config_iptables
+config_iptables:
+	cp config/iptables.rules build/alpine/root/iptables.rules || true
+	chroot build/alpine /bin/ash -c 'sed -i "s/\$$I2PD_ID/$$(id -u i2pd)/" /root/iptables.rules'
+	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules'
+
+CONFIG_TARGETS += config_librewolf
+config_librewolf:
+	mkdir -p build/alpine/usr/lib/librewolf/defaults/perf
+	printf 'pref("general.config.filename", "librewolf.cfg");\npref("general.config.obscure_value", 0);\n' > build/alpine/usr/lib/librewolf/defaults/perf/autoconfig.js
+	cp config/librewolf.cfg build/alpine/usr/lib/librewolf/librewolf.cfg
+
+CONFIG_TARGETS += config_machine_id
+config_machine_id:
+	echo "b08dfa6083e7567a1921a715000001fb" > build/alpine/etc/machine-id
 
 CONFIG_TARGETS += config_networkmanager
 config_networkmanager:
@@ -175,20 +186,9 @@ config_networkmanager:
 	printf "[device]\nwifi.scan-rand-mac-address=yes\n[connection]\nwifi.cloned-mac-address=random\nethernet.cloned-mac-address=random\nconnection.stable-id=${CONNECTION}/${BOOT}" > build/alpine/etc/NetworkManager/conf.d/00-macrandomize.conf
 	printf "[main]\nhostname-mode=none" > build/alpine/etc/NetworkManager/conf.d/hostname.conf
 
-CONFIG_TARGETS += config_librewolf
-config_librewolf:
-	mkdir -p build/alpine/usr/lib/librewolf/defaults/perf
-	printf 'pref("general.config.filename", "librewolf.cfg");\npref("general.config.obscure_value", 0);\n' > build/alpine/usr/lib/librewolf/defaults/perf/autoconfig.js
-	cp config/librewolf.cfg build/alpine/usr/lib/librewolf/librewolf.cfg
-
 CONFIG_TARGETS += config_user_init
 config_user_init:
-	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile" || true
-
-CONFIG_TARGETS += config_firmware
-config_firmware:
-	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
-	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
+	chroot build/alpine /bin/ash -c "echo \"clear && rm -f /home/Cloak/.profile && startx /usr/bin/gnome-shell --x11 &>/dev/null\" > /home/Cloak/.profile"
 
 clean:
 	umount build/alpine/proc |:
