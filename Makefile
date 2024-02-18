@@ -12,6 +12,9 @@ ALPINE_MINI=3.19
 
 KERNEL=6.6.12
 
+AMD_UCODE=20240115-r0
+INTEL_UCODE=20231114-r0
+
 AGETTY=2.39.3-r0
 CURL=8.5.0-r0
 DBUS_X11=1.14.10-r0
@@ -103,6 +106,9 @@ build_alpine:
 		xf86-input-libinput=$(XF86_INPUT_LIBINPUT) \
 		xinit=$(XINIT) \
 		xorg-server=$(XORG_SERVER)" || true
+	chroot build/alpine /bin/ash -c "apk add \
+		amd-ucode=$(AMD_UCODE) \
+		intel-ucode=$(INTEL_UCODE)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
@@ -152,7 +158,7 @@ finish_initramfs:
 	mknod -m 622 build/alpine/dev/console c 5 1 |:
 	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
-	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zstd
+	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
 
 # ISO
 
@@ -217,6 +223,11 @@ config_networkmanager:
 	printf "[main]\ndns=dnsmasq" > build/alpine/etc/NetworkManager/conf.d/dns.conf
 	cp config/macaddress.conf build/alpine/etc/NetworkManager/conf.d/00-macrandomize.conf
 	printf "[main]\nhostname-mode=none" > build/alpine/etc/NetworkManager/conf.d/hostname.conf
+
+CONFIG_TARGETS += config_ucode
+config_ucode:
+	mv build/alpine/boot/{amd,intel}-ucode.img build/mnt/boot || true
+	zstd -v -T$(JOBS) --ultra -22 --progress --rm build/mnt/boot/{amd,intel}-ucode.img || true
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
