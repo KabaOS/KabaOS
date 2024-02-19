@@ -202,6 +202,7 @@ config_hardened_malloc:
 
 CONFIG_TARGETS += config_init
 config_init:
+	cp config/inittab build/alpine/etc/inittab
 	cp init/init.sh build/alpine/etc/init
 
 CONFIG_TARGETS += config_iptables

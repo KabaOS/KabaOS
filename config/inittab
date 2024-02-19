@@ -1,0 +1,3 @@
+::respawn:/etc/init
+::ctrlaltdel:/sbin/reboot
+::restart:/sbin/init
