@@ -1,0 +1,14 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+
+<pref version='1' name='/'>
+    <pref name='purple'>
+        <pref name='proxy'>
+            <pref name='type' type='string' value='socks5'/>
+            <pref name='host' type='string' value='127.0.0.1'/>
+            <pref name='port' type='int' value='4447'/>
+            <pref name='username' type='string' value=''/>
+            <pref name='password' type='string' value=''/>
+            <pref name='socks5_remotedns' type='bool' value='0'/>
+        </pref>
+    </pref>
+</pref>

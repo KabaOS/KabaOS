@@ -31,7 +31,7 @@ I2PD=2.49.0-r1
 IPTABLES=1.8.10-r3
 LIBREWOLF=122.0.1_p2-r0
 LINUX_FIRMWARE=20231111-r1
-MESA_DRI_GALLIUM=23.3.1-r0
+MESA_DRI_GALLIUM=23.3.6-r0
 NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
 NETWORKMANAGER_WIFI=1.44.2-r1
@@ -43,6 +43,8 @@ WIRELESS_REGDB=2023.09.01-r0
 XF86_INPUT_LIBINPUT=1.4.0-r0
 XINIT=1.4.2-r1
 XORG_SERVER=21.1.11-r0
+
+PIDGIN=2.14.12-r3
 
 .PHONY: build
 
@@ -80,6 +82,9 @@ build_alpine:
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
 	chroot build/alpine /bin/ash -c "apk add \
+		amd-ucode=$(AMD_UCODE) \
+		intel-ucode=$(INTEL_UCODE)" || true
+	chroot build/alpine /bin/ash -c "apk add \
 		agetty=$(AGETTY) \
 		curl=$(CURL) \
 		dbus-x11=$(DBUS_X11) \
@@ -108,8 +113,7 @@ build_alpine:
 		xinit=$(XINIT) \
 		xorg-server=$(XORG_SERVER)" || true
 	chroot build/alpine /bin/ash -c "apk add \
-		amd-ucode=$(AMD_UCODE) \
-		intel-ucode=$(INTEL_UCODE)" || true
+		pidgin=$(PIDGIN)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
