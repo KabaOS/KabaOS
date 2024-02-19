@@ -190,6 +190,10 @@ config_firmware:
 	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
 	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
 
+CONFIG_TARGETS += config_i2pd
+config_i2pd:
+	mkdir -p build/alpine/var/lib/i2pd
+
 CONFIG_TARGETS += config_init
 config_init:
 	cp init/init.sh build/alpine/etc/init
