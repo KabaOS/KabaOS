@@ -175,11 +175,9 @@ build_iso:
 
 # CONFIG
 
-CONFIG_TARGETS += config_cryptdns
-config_cryptdns:
-	mkdir -p build/apline/etc/dnscrypt-proxy
-	cp config/dnscrypt-proxy.toml build/alpine/etc/dnscrypt-proxy/dnscrypt-proxy.toml
-	echo "9.9.9.10 dns10.quad9.net" >> build/alpine/etc/hosts
+CONFIG_TARGETS += config_default
+config_default:
+	cp -r config/mnt/* build/alpine
 
 CONFIG_TARGETS += config_dbus
 config_dbus:
@@ -187,22 +185,13 @@ config_dbus:
 	mkdir -p build/alpine/var/run/dbus
 	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
 
-CONFIG_TARGETS += config_dnsmasq
-config_dnsmasq:
-	cp config/dnsmasq.conf build/alpine/etc/dnsmasq.conf
-
 CONFIG_TARGETS += config_firmware
 config_firmware:
 	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
 	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
 
-CONFIG_TARGETS += config_hardened_malloc
-config_hardened_malloc:
-	echo "/usr/lib/libhardened_malloc.so" > build/alpine/etc/ld.so.preload
-
 CONFIG_TARGETS += config_init
 config_init:
-	cp config/inittab build/alpine/etc/inittab
 	cp init/init.sh build/alpine/etc/init
 
 CONFIG_TARGETS += config_iptables
@@ -211,27 +200,10 @@ config_iptables:
 	chroot build/alpine /bin/ash -c 'sed -i "s/\$$I2PD_ID/$$(id -u i2pd)/" /root/iptables.rules'
 	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules'
 
-CONFIG_TARGETS += config_librewolf
-config_librewolf:
-	mkdir -p build/alpine/usr/lib/librewolf/defaults/perf
-	printf 'pref("general.config.filename", "librewolf.cfg");\npref("general.config.obscure_value", 0);\n' > build/alpine/usr/lib/librewolf/defaults/perf/autoconfig.js
-	cp config/librewolf.cfg build/alpine/usr/lib/librewolf/librewolf.cfg
-
-CONFIG_TARGETS += config_machine_id
-config_machine_id:
-	echo "b08dfa6083e7567a1921a715000001fb" > build/alpine/etc/machine-id
-
-CONFIG_TARGETS += config_networkmanager
-config_networkmanager:
-	mkdir -p build/alpine/etc/NetworkManager/conf.d
-	printf "[main]\ndns=dnsmasq" > build/alpine/etc/NetworkManager/conf.d/dns.conf
-	cp config/macaddress.conf build/alpine/etc/NetworkManager/conf.d/00-macrandomize.conf
-	printf "[main]\nhostname-mode=none" > build/alpine/etc/NetworkManager/conf.d/hostname.conf
-
 CONFIG_TARGETS += config_ucode
 config_ucode:
 	mv build/alpine/boot/{amd,intel}-ucode.img build/mnt/boot || true
-	zstd -v -T$(JOBS) --ultra -22 --progress --rm build/mnt/boot/{amd,intel}-ucode.img || true
+	zstd -v -f -T$(JOBS) --ultra -22 --progress --rm build/mnt/boot/{amd,intel}-ucode.img || true
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
