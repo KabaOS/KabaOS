@@ -115,17 +115,18 @@ build_alpine:
 		wireless-regdb=$(WIRELESS_REGDB) \
 		xf86-input-libinput=$(XF86_INPUT_LIBINPUT) \
 		xinit=$(XINIT) \
-		xorg-server=$(XORG_SERVER) \
-		lsblk" || true
+		xorg-server=$(XORG_SERVER)" || true
 	chroot build/alpine /bin/ash -c "apk add \
 		pidgin=$(PIDGIN)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-settle" || true
-	chroot build/alpine /bin/ash -c "useradd -m Cloak" || true
+	chroot build/alpine /bin/ash -c "useradd -m Kaba" || true
 	chroot build/alpine /bin/ash -c "mkdir -p /var/lib/misc" || true
 	chroot build/alpine /bin/ash -c "touch /etc/fstab" || true
+	chroot build/alpine /bin/ash -c "mkdir -p /run/openrc" || true
+	chroot build/alpine /bin/ash -c "touch /run/openrc/softlevel" || true
 	chroot build/alpine /bin/ash -c "rc-update add openrc-settingsd boot" || true
 	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
 	chroot build/alpine /bin/ash -c "rc-update add elogind" || true
@@ -149,7 +150,7 @@ finish_alpine:
 # KERNEL
 
 download_kernel:
-	rm -rf "build/cloak/sources/linux-kernel"
+	rm -rf "build/linux-kernel"
 	curl "https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git/snapshot/linux-$(KERNEL).tar.gz" -o "linux.tar.gz"
 	tar -zxf "linux.tar.gz"
 	rm "linux.tar.gz"
@@ -211,16 +212,23 @@ create_img:
 	mkdir -p build/mnt/boot/efi build/mnt/boot/grub
 	cp config/grub.cfg build/mnt/boot/grub
 	sed -i "s/VERSION/$(KERNEL)/g" build/mnt/boot/grub/grub.cfg
-	touch build/mnt/boot/grub/CLOAK_OS.uuid
+	touch build/mnt/boot/grub/KabaOS.uuid
 
 build_iso:
-	grub-mkrescue --compress=xz -o Cloak.iso build/mnt
+	grub-mkrescue --compress=xz -o KabaOS.iso build/mnt
 
 # CONFIG
 
 CONFIG_TARGETS += config_default
 config_default:
 	cp -r config/mnt/* build/alpine
+
+CONFIG_TARGETS += config_dbus
+config_dbus:
+	mkdir -p build/alpine/run/dbus
+	mkdir -p build/alpine/var/run/dbus
+	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
+
 
 CONFIG_TARGETS += config_firmware
 config_firmware:
@@ -248,7 +256,7 @@ config_ucode:
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
-	cp init/post_init.sh build/alpine/home/Cloak/.profile
+	cp init/post_init.sh build/alpine/home/Kaba/.profile
 
 clean:
 	umount build/alpine/proc |:
