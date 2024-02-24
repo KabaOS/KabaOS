@@ -13,6 +13,10 @@ ALPINE_MINI=3.19
 KERNEL=6.6.12
 LINUX_HARDENED=6.6.12-hardened1
 
+BUSYBOX=1.36.1
+
+ZSTD=1.5.5
+
 AMD_UCODE=20240115-r0
 INTEL_UCODE=20231114-r0
 
@@ -21,7 +25,7 @@ CURL=8.5.0-r0
 DBUS_X11=1.14.10-r0
 DNSCRYPT_PROXY=2.1.5-r2
 DNSCRYPT_PROXY_OPENRC=2.1.5-r2
-DNSMASQ=2.90-r0
+DNSMASQ=2.90-r2
 EUDEV=3.2.14-r0
 GDM=45.0.1-r0
 GNOME_CONSOLE=45.0-r1
@@ -30,7 +34,7 @@ HARDENED_MALLOC=12-r1
 I2PD=2.49.0-r1
 IPTABLES=1.8.10-r3
 LIBREWOLF=122.0.1_p2-r0
-LINUX_FIRMWARE=20231111-r1
+LINUX_FIRMWARE=20240115-r0
 MESA_DRI_GALLIUM=23.3.6-r0
 NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
@@ -50,9 +54,9 @@ PIDGIN=2.14.12-r3
 
 all: download build
 
-download: download_alpine download_kernel
+download: download_alpine download_kernel download_busybox download_zstd
 
-build: create_img build_kernel build_alpine config finish_initramfs build_iso
+build: create_img build_kernel build_alpine config finish_alpine build_busybox build_zstd build_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -111,7 +115,8 @@ build_alpine:
 		wireless-regdb=$(WIRELESS_REGDB) \
 		xf86-input-libinput=$(XF86_INPUT_LIBINPUT) \
 		xinit=$(XINIT) \
-		xorg-server=$(XORG_SERVER)" || true
+		xorg-server=$(XORG_SERVER) \
+		lsblk" || true
 	chroot build/alpine /bin/ash -c "apk add \
 		pidgin=$(PIDGIN)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
@@ -119,9 +124,7 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-settle" || true
 	chroot build/alpine /bin/ash -c "useradd -m Cloak" || true
-	chroot build/alpine /bin/ash -c "mkdir -p /run/openrc" || true
 	chroot build/alpine /bin/ash -c "mkdir -p /var/lib/misc" || true
-	chroot build/alpine /bin/ash -c "touch /run/openrc/softlevel" || true
 	chroot build/alpine /bin/ash -c "touch /etc/fstab" || true
 	chroot build/alpine /bin/ash -c "rc-update add openrc-settingsd boot" || true
 	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
@@ -137,6 +140,11 @@ build_alpine:
 	umount build/alpine/proc
 	umount build/alpine/dev
 	umount build/alpine/sys
+
+finish_alpine:
+	mkdir -p build/alpine/dev
+	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
+	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/alpine.cpio.zst
 
 # KERNEL
 
@@ -157,15 +165,45 @@ build_kernel:
 	INSTALL_PATH="$(shell pwd)/build/mnt/boot" make install
 	rm -rf build/mnt/boot/*.old
 
+# BUSYBOX
+
+download_busybox:
+	rm -rf "build/busybox"
+	curl "https://busybox.net/downloads/busybox-$(BUSYBOX).tar.bz2" -o "busybox.tar.bz2"
+	tar -jxf "busybox.tar.bz2"
+	rm "busybox.tar.bz2"
+	mkdir -p build
+	mv "busybox-$(BUSYBOX)" "build/busybox"
+
+build_busybox:
+	cp config/busybox.config build/busybox/.config
+	cd build/busybox && \
+	make "-j$(JOBS)" && \
+	make CONFIG_PREFIX=./../initramfs install
+
+# ZSTD
+
+download_zstd:
+	rm -rf "build/zstd"
+	curl -L "https://github.com/facebook/zstd/releases/download/v$(ZSTD)/zstd-$(ZSTD).tar.gz" -o "zstd.tar.gz"
+	tar -zxf "zstd.tar.gz"
+	rm "zstd.tar.gz"
+	mkdir -p build
+	mv "zstd-$(ZSTD)" "build/zstd"
+
+build_zstd:
+	cd build/zstd/programs && \
+	make FLAGS="$(CFLAGS) -static" -j$(JOBS) zstd-decompress
+	strip build/zstd/programs/zstd-decompress
+	cp build/zstd/programs/zstd-decompress build/initramfs/bin/zstd
+
 # INITRAMFS
 
-finish_initramfs:
-	mkdir -p build/alpine/dev
-	mknod -m 622 build/alpine/dev/null c 1 3 |:
-	mknod -m 622 build/alpine/dev/console c 5 1 |:
-	mknod -m 622 build/alpine/dev/tty0 c 4 0 |:
-	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
-	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
+build_initramfs:
+	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/root,proc,root,sbin,sys}
+	cp init/initramfs.sh build/initramfs/init
+	chmod +x build/initramfs/init
+	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
 
 # ISO
 
@@ -173,21 +211,16 @@ create_img:
 	mkdir -p build/mnt/boot/efi build/mnt/boot/grub
 	cp config/grub.cfg build/mnt/boot/grub
 	sed -i "s/VERSION/$(KERNEL)/g" build/mnt/boot/grub/grub.cfg
+	touch build/mnt/boot/grub/CLOAK_OS.uuid
 
 build_iso:
-	grub-mkrescue -o Cloak.iso build/mnt
+	grub-mkrescue --compress=xz -o Cloak.iso build/mnt
 
 # CONFIG
 
 CONFIG_TARGETS += config_default
 config_default:
 	cp -r config/mnt/* build/alpine
-
-CONFIG_TARGETS += config_dbus
-config_dbus:
-	mkdir -p build/alpine/run/dbus
-	mkdir -p build/alpine/var/run/dbus
-	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
 
 CONFIG_TARGETS += config_firmware
 config_firmware:
