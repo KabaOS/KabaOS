@@ -215,7 +215,7 @@ create_img:
 	touch build/mnt/boot/grub/KabaOS.uuid
 
 build_iso:
-	grub-mkrescue --compress=xz -o KabaOS.iso build/mnt
+	grub-mkrescue --compress=xz -o KabaOS.iso build/mnt -- -volid KabaOS
 
 # CONFIG
 
