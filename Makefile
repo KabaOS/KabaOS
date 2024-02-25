@@ -179,7 +179,7 @@ download_busybox:
 build_busybox:
 	cp config/busybox.config build/busybox/.config
 	cd build/busybox && \
-	make "-j$(JOBS)" && \
+	make FLAGS="$(CFLAGS)" -j"$(JOBS)" && \
 	make CONFIG_PREFIX=./../initramfs install
 
 # ZSTD
