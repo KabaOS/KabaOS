@@ -4,10 +4,13 @@ mount -o nosuid,nodev,noexec,hidepid=2 -t proc none /proc
 mount -t sysfs none /sys
 mount -t devtmpfs dev /dev -o mode=0755,nosuid
 
+net.ipv6.conf.all.use_tempaddr=2
+net.ipv6.conf.default.use_tempaddr=2
 sysctl fs.protected_fifos=2
 sysctl fs.protected_hardlinks=1
 sysctl fs.protected_regular=2
 sysctl fs.protected_symlinks=1
+sysctl kernel.core_pattern=|/bin/false
 sysctl kernel.deny_new_usb=1
 sysctl kernel.kptr_restrict=2
 sysctl kernel.perf_event_paranoid=3
