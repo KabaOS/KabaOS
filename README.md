@@ -9,25 +9,28 @@ that make it run correctly over i2p.
 
 ## Building
 
-You can download the repository with:
+You can download the repository with the following.
 
 ```
 git clone https://github.com/arthurmelton/KabaOS
 ```
 
-Once you have the source code you can run:
+Once you have the source code you can run the following to download all of the
+extra code that is needed. You only have to do this one time.
 
 ```
 make download
 ```
 
-to download all the pieces needed (only run one time) then run:
+Once you have downloaded all the code, you can actually build the project with
+the following.
 
 ```
 sudo make build
 ```
 
-Or you can do the following to both download and build:
+If you want to download all the code and then build it, you can run the
+following.
 
 ```
 sudo make all
