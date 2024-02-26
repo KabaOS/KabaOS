@@ -1,8 +1,9 @@
-export CC="gcc"
+export CC=gcc
+export ARCH=$(shell arch)
 
-export CFLAGS=-pipe -march=x86-64 -O2 -Wall
+export CFLAGS=-pipe -mtune=generic -O2 -Wall
 export CXXFLAGS=$(CFLAGS)
-export LDFLAGS=-pipe -march=x86-64
+export LDFLAGS=-pipe -mtune=generic
 export JOBS=$(shell nproc)
 
 # VERSIONS
@@ -13,9 +14,7 @@ ALPINE_MINI=3.19
 KERNEL=6.6.12
 LINUX_HARDENED=6.6.12-hardened1
 
-BUSYBOX=1.36.1
-
-ZSTD=1.5.5
+ZSTD=1.5.5-r8
 
 AMD_UCODE=20240115-r0
 INTEL_UCODE=20231114-r0
@@ -54,9 +53,9 @@ PIDGIN=2.14.12-r3
 
 all: download build
 
-download: download_alpine download_kernel download_busybox download_zstd
+download: download_alpine download_kernel
 
-build: create_img build_kernel build_alpine config finish_alpine build_busybox build_zstd build_initramfs build_iso
+build: create_img build_kernel build_alpine config finish_alpine build_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -65,9 +64,10 @@ config: $$(CONFIG_TARGETS)
 
 download_alpine:
 	mkdir -p build/alpine
-	curl "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/releases/x86_64/alpine-minirootfs-$(ALPINE)-x86_64.tar.gz" -o build/alpine/alpine.tar.gz
+	curl "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/releases/$(ARCH)/alpine-minirootfs-$(ALPINE)-$(ARCH).tar.gz" -o build/alpine/alpine.tar.gz
 	cd build/alpine/ && tar -xzf alpine.tar.gz
 	rm build/alpine/alpine.tar.gz
+	cp -r build/alpine build/initramfs
 
 build_alpine:
 	mkdir -p build/alpine/
@@ -145,7 +145,7 @@ build_alpine:
 finish_alpine:
 	mkdir -p build/alpine/dev
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
-	cd build/alpine && find . -print0 | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/alpine.cpio.zst
+	cd build/alpine && find . -print0 ! -path './bin/busybox' | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/alpine.cpio.zst
 
 # KERNEL
 
@@ -166,44 +166,26 @@ build_kernel:
 	INSTALL_PATH="$(shell pwd)/build/mnt/boot" make install
 	rm -rf build/mnt/boot/*.old
 
-# BUSYBOX
-
-download_busybox:
-	rm -rf "build/busybox"
-	curl "https://busybox.net/downloads/busybox-$(BUSYBOX).tar.bz2" -o "busybox.tar.bz2"
-	tar -jxf "busybox.tar.bz2"
-	rm "busybox.tar.bz2"
-	mkdir -p build
-	mv "busybox-$(BUSYBOX)" "build/busybox"
-
-build_busybox:
-	cp config/busybox.config build/busybox/.config
-	cd build/busybox && \
-	make FLAGS="$(CFLAGS)" -j"$(JOBS)" && \
-	make CONFIG_PREFIX=./../initramfs install
-
-# ZSTD
-
-download_zstd:
-	rm -rf "build/zstd"
-	curl -L "https://github.com/facebook/zstd/releases/download/v$(ZSTD)/zstd-$(ZSTD).tar.gz" -o "zstd.tar.gz"
-	tar -zxf "zstd.tar.gz"
-	rm "zstd.tar.gz"
-	mkdir -p build
-	mv "zstd-$(ZSTD)" "build/zstd"
-
-build_zstd:
-	cd build/zstd/programs && \
-	make FLAGS="$(CFLAGS) -static" -j$(JOBS) zstd-decompress
-	strip build/zstd/programs/zstd-decompress
-	cp build/zstd/programs/zstd-decompress build/initramfs/bin/zstd
-
 # INITRAMFS
 
 build_initramfs:
 	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/root,proc,root,sbin,sys}
+	mount -t proc none build/initramfs/proc
+	mount --bind "/dev" "build/initramfs/dev"
+	mount --make-private "build/initramfs/dev"
+	mount --bind "/sys" "build/initramfs/sys"
+	mount --make-private "build/initramfs/sys"
+	install -D -m 644 /etc/resolv.conf build/initramfs/etc/resolv.conf
+	chroot build/initramfs /bin/ash -c "apk update" || true
+	chroot build/initramfs /bin/ash -c "apk add zstd=$(ZSTD)" || true
+	chroot build/initramfs /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
+	chroot build/initramfs /bin/ash -c "rm -rf /etc /lib/apk /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
 	cp init/initramfs.sh build/initramfs/init
 	chmod +x build/initramfs/init
+	rm -rf build/initramfs/etc/resolv.conf
+	umount build/initramfs/proc
+	umount build/initramfs/dev
+	umount build/initramfs/sys
 	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
 
 # ISO
