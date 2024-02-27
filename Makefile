@@ -61,6 +61,10 @@ build: create_img build_kernel build_alpine build_initramfs config finish_alpine
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
 
+# ARGS
+
+ZSTD_ARGS=$(shell if [ "$(FAST)" != "y" ]; then echo "--ultra -22"; fi)
+
 # ALPINE
 
 download_alpine:
@@ -133,7 +137,7 @@ build_alpine:
 finish_alpine:
 	mkdir -p build/alpine/dev
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
-	cd build/alpine && find . -print0 ! -path './bin/busybox' | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/alpine.cpio.zst
+	cd build/alpine && find . -print0 ! -path './bin/busybox' | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) $(ZSTD_ARGS) --progress > ../mnt/alpine.cpio.zst
 
 # WHEREACE
 download_whence:
@@ -175,7 +179,7 @@ build_initramfs:
 	rm -rf build/initramfs/etc/resolv.conf
 
 finish_initramfs:
-	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
+	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) $(ZSTD_ARGS) --progress > ../mnt/boot/initramfs.cpio.zst
 
 # ISO
 
@@ -202,7 +206,7 @@ config_dbus:
 
 CONFIG_TARGETS += config_firmware
 config_firmware:
-	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep -Po '(?<=File: ).*' | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm "{}" || true
+	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep -Po '(?<=File: ).*' | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) $(ZSTD_ARGS) --progress --rm "{}" || true
 
 CONFIG_TARGETS += config_i2pd
 config_i2pd:
@@ -221,7 +225,7 @@ config_iptables:
 CONFIG_TARGETS += config_ucode
 config_ucode:
 	mv build/alpine/boot/{amd,intel}-ucode.img build/mnt/boot || true
-	zstd -v -f -T$(JOBS) --ultra -22 --progress --rm build/mnt/boot/{amd,intel}-ucode.img || true
+	zstd -v -f -T$(JOBS) $(ZSTD_ARGS) --progress --rm build/mnt/boot/{amd,intel}-ucode.img || true
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
