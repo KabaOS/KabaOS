@@ -130,7 +130,6 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "rc-update add openrc-settingsd boot" || true
 	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
 	chroot build/alpine /bin/ash -c "rc-update add elogind" || true
-	chroot build/alpine /bin/ash -c "rc-update add i2pd" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnsmasq" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnscrypt-proxy" || true
 	mkdir -p "build/alpine/root"
