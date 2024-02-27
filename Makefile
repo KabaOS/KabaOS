@@ -43,6 +43,7 @@ POLKIT_COMMON=124-r0
 SHADOW_LOGIN=4.14.2-r0
 UDEV_INIT_SCRIPTS=35-r1
 UDEV_INIT_SCRIPTS_OPENRC=35-r1
+WPA_SUPPLICANT=2.10-r10
 XF86_INPUT_LIBINPUT=1.4.0-r0
 XINIT=1.4.2-r1
 XORG_SERVER=21.1.11-r0
@@ -111,6 +112,7 @@ build_alpine:
 		shadow-login=$(SHADOW_LOGIN) \
 		udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) \
 		udev-init-scripts=$(UDEV_INIT_SCRIPTS) \
+		wpa_supplicant=$(WPA_SUPPLICANT) \
 		xf86-input-libinput=$(XF86_INPUT_LIBINPUT) \
 		xinit=$(XINIT) \
 		xorg-server=$(XORG_SERVER)" || true
