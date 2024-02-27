@@ -21,6 +21,7 @@ while [ $(( $(date +%s) - start )) -lt 5 ]; do
             cat /mnt/iso/alpine.cpio.zst | zstd -d | cpio -i
             cd
             cp /bin/busybox /mnt/root/bin/busybox
+            cp -r /lib/firmware/. /mnt/root/lib/firmware/
 
             # Clean up.
             umount /proc

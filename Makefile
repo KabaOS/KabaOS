@@ -14,6 +14,8 @@ ALPINE_MINI=3.19
 KERNEL=6.6.12
 LINUX_HARDENED=6.6.12-hardened1
 
+LINUX_FIRMWARE=20240115-r0
+WIRELESS_REGDB=2023.09.01-r0
 ZSTD=1.5.5-r8
 
 AMD_UCODE=20240115-r0
@@ -33,7 +35,6 @@ HARDENED_MALLOC=12-r1
 I2PD=2.49.0-r1
 IPTABLES=1.8.10-r3
 LIBREWOLF=123.0_p1-r0
-LINUX_FIRMWARE=20240115-r0
 MESA_DRI_GALLIUM=23.3.6-r0
 NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
@@ -42,7 +43,6 @@ POLKIT_COMMON=124-r0
 SHADOW_LOGIN=4.14.2-r0
 UDEV_INIT_SCRIPTS=35-r1
 UDEV_INIT_SCRIPTS_OPENRC=35-r1
-WIRELESS_REGDB=2023.09.01-r0
 XF86_INPUT_LIBINPUT=1.4.0-r0
 XINIT=1.4.2-r1
 XORG_SERVER=21.1.11-r0
@@ -55,7 +55,7 @@ all: download build
 
 download: download_alpine download_kernel
 
-build: create_img build_kernel build_alpine config finish_alpine build_initramfs build_iso
+build: create_img build_kernel build_alpine build_initramfs config finish_alpine finish_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -103,7 +103,6 @@ build_alpine:
 		i2pd=$(I2PD) \
 		iptables=$(IPTABLES) \
 		librewolf=$(LIBREWOLF) \
-		linux-firmware=$(LINUX_FIRMWARE) \
 		mesa-dri-gallium=$(MESA_DRI_GALLIUM) \
 		nautilus=$(NAUTILUS) \
 		networkmanager-wifi=$(NETWORKMANAGER_WIFI) \
@@ -112,7 +111,6 @@ build_alpine:
 		shadow-login=$(SHADOW_LOGIN) \
 		udev-init-scripts-openrc=$(UDEV_INIT_SCRIPTS_OPENRC) \
 		udev-init-scripts=$(UDEV_INIT_SCRIPTS) \
-		wireless-regdb=$(WIRELESS_REGDB) \
 		xf86-input-libinput=$(XF86_INPUT_LIBINPUT) \
 		xinit=$(XINIT) \
 		xorg-server=$(XORG_SERVER)" || true
@@ -177,7 +175,10 @@ build_initramfs:
 	mount --make-private "build/initramfs/sys"
 	install -D -m 644 /etc/resolv.conf build/initramfs/etc/resolv.conf
 	chroot build/initramfs /bin/ash -c "apk update" || true
-	chroot build/initramfs /bin/ash -c "apk add zstd=$(ZSTD)" || true
+	chroot build/initramfs /bin/ash -c "apk add \
+		linux-firmware=$(LINUX_FIRMWARE) \
+		wireless-regdb=$(WIRELESS_REGDB) \
+		zstd=$(ZSTD)" || true
 	chroot build/initramfs /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/initramfs /bin/ash -c "rm -rf /etc /lib/apk /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
 	cp init/initramfs.sh build/initramfs/init
@@ -186,6 +187,8 @@ build_initramfs:
 	umount build/initramfs/proc
 	umount build/initramfs/dev
 	umount build/initramfs/sys
+
+finish_initramfs:
 	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
 
 # ISO
@@ -211,11 +214,9 @@ config_dbus:
 	mkdir -p build/alpine/var/run/dbus
 	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
 
-
 CONFIG_TARGETS += config_firmware
 config_firmware:
-	zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm -r build/alpine/lib/firmware
-	find build/alpine/lib/firmware -type f | sed 's/....$$//' | xargs -I{} ln -fsr {}.zst {}
+	cd build/initramfs/lib/firmware && curl "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/WHENCE?h=$$(echo "$(LINUX_FIRMWARE)" | cut -f1 -d'-')" | grep -Po '(?<=File: ).*' | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm "{}" || true
 
 CONFIG_TARGETS += config_i2pd
 config_i2pd:
