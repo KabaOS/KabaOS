@@ -72,17 +72,9 @@ download_alpine:
 
 build_alpine:
 	mkdir -p build/alpine/
-	umount build/alpine/proc |:
-	umount build/alpine/dev |:
-	umount build/alpine/sys |:
 	mkdir -p build/alpine/proc
-	mount -t proc none build/alpine/proc
 	mkdir -p "build/alpine/dev"
-	mount --bind "/dev" "build/alpine/dev"
-	mount --make-private "build/alpine/dev"
 	mkdir -p "build/alpine/sys"
-	mount --bind "/sys" "build/alpine/sys"
-	mount --make-private "build/alpine/sys"
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/main\nhttps://dl-cdn.alpinelinux.org/alpine/edge/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
@@ -137,9 +129,6 @@ build_alpine:
 	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
 	chroot build/alpine /bin/ash -c 'chmod -R 600 "/root"' || true
 	rm -rf build/alpine/etc/resolv.conf
-	umount build/alpine/proc
-	umount build/alpine/dev
-	umount build/alpine/sys
 
 finish_alpine:
 	mkdir -p build/alpine/dev
@@ -173,11 +162,6 @@ build_kernel:
 
 build_initramfs:
 	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/root,proc,root,sbin,sys}
-	mount -t proc none build/initramfs/proc
-	mount --bind "/dev" "build/initramfs/dev"
-	mount --make-private "build/initramfs/dev"
-	mount --bind "/sys" "build/initramfs/sys"
-	mount --make-private "build/initramfs/sys"
 	install -D -m 644 /etc/resolv.conf build/initramfs/etc/resolv.conf
 	chroot build/initramfs /bin/ash -c "apk update" || true
 	chroot build/initramfs /bin/ash -c "apk add \
@@ -189,9 +173,6 @@ build_initramfs:
 	cp init/initramfs.sh build/initramfs/init
 	chmod +x build/initramfs/init
 	rm -rf build/initramfs/etc/resolv.conf
-	umount build/initramfs/proc
-	umount build/initramfs/dev
-	umount build/initramfs/sys
 
 finish_initramfs:
 	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) --ultra -22 --progress > ../mnt/boot/initramfs.cpio.zst
@@ -247,7 +228,4 @@ config_user_init:
 	cp init/post_init.sh build/alpine/home/Kaba/.profile
 
 clean:
-	umount build/alpine/proc |:
-	umount build/alpine/dev |:
-	umount build/alpine/sys |:
 	rm -rf build
