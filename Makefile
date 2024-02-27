@@ -54,7 +54,7 @@ PIDGIN=2.14.12-r3
 
 all: download build
 
-download: download_alpine download_kernel
+download: download_alpine download_kernel download_whence
 
 build: create_img build_kernel build_alpine build_initramfs config finish_alpine finish_initramfs build_iso
 
@@ -146,6 +146,10 @@ finish_alpine:
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
 	cd build/alpine && find . -print0 ! -path './bin/busybox' | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) --ultra -22 --progress > ../mnt/alpine.cpio.zst
 
+# WHEREACE
+download_whence:
+	curl "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/WHENCE?h=$$(echo "$(LINUX_FIRMWARE)" | cut -f1 -d'-')" -o build/WHENCE
+
 # KERNEL
 
 download_kernel:
@@ -217,7 +221,7 @@ config_dbus:
 
 CONFIG_TARGETS += config_firmware
 config_firmware:
-	cd build/initramfs/lib/firmware && curl "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/WHENCE?h=$$(echo "$(LINUX_FIRMWARE)" | cut -f1 -d'-')" | grep -Po '(?<=File: ).*' | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm "{}" || true
+	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep -Po '(?<=File: ).*' | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) --ultra -22 --progress --rm "{}" || true
 
 CONFIG_TARGETS += config_i2pd
 config_i2pd:
