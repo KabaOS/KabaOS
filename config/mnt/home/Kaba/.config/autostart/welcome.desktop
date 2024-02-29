@@ -1,0 +1,5 @@
+[Desktop Entry]
+Name=Welcome
+Exec=/bin/welcome
+Type=Application
+X-GNOME-Autostart-enabled=true

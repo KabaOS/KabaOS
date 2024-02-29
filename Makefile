@@ -36,6 +36,7 @@ I2PD=2.49.0-r1
 IPTABLES=1.8.10-r3
 LIBREWOLF=123.0_p1-r0
 MESA_DRI_GALLIUM=23.3.6-r0
+GCOMPAT=1.1.0-r4
 NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
 NETWORKMANAGER_WIFI=1.44.2-r1
@@ -56,7 +57,7 @@ all: download build
 
 download: download_alpine download_kernel download_whence
 
-build: create_img build_kernel build_alpine build_initramfs config finish_alpine finish_initramfs build_iso
+build: create_img build_kernel build_alpine build_initramfs config build_welcome finish_alpine finish_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -93,6 +94,7 @@ build_alpine:
 		dnscrypt-proxy=$(DNSCRYPT_PROXY) \
 		dnsmasq=$(DNSMASQ) \
 		eudev=$(EUDEV) \
+		gcompat=$(GCOMPAT) \
 		gdm=$(GDM) \
 		gnome-console=$(GNOME_CONSOLE) \
 		gnome-text-editor=$(GNOME_TEXT_EDITOR) \
@@ -181,6 +183,12 @@ build_initramfs:
 finish_initramfs:
 	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) $(ZSTD_ARGS) --progress > ../mnt/boot/initramfs.cpio.zst
 
+# WELCOME
+
+build_welcome:
+	cd welcome && CGO_LDFLAGS="-Xlinker -rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" go build -v -buildvcs=false github.com/arthurmelton/KabaOS/welcome
+	mv welcome/welcome build/alpine/bin/
+
 # ISO
 
 create_img:
@@ -230,6 +238,10 @@ config_ucode:
 CONFIG_TARGETS += config_user_init
 config_user_init:
 	cp init/post_init.sh build/alpine/home/Kaba/.profile
+
+CONFIG_TARGETS += config_home
+config_home:
+	chroot build/alpine /bin/ash -c 'chown -R $$(id -u Kaba):$$(id -g Kaba) /home/Kaba'
 
 clean:
 	rm -rf build
