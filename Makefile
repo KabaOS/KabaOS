@@ -198,6 +198,7 @@ create_img:
 	touch build/mnt/boot/grub/KabaOS.uuid
 
 build_iso:
+	sed -i 's/$$HASH/$(shell sha256sum build/mnt/alpine.cpio.zst | cut -c-64)/g' build/mnt/boot/grub/grub.cfg
 	grub-mkrescue --compress=xz -o KabaOS.iso build/mnt -- -volid KabaOS
 
 # CONFIG
