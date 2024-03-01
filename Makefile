@@ -49,6 +49,7 @@ XF86_INPUT_LIBINPUT=1.4.0-r0
 XINIT=1.4.2-r1
 XORG_SERVER=21.1.11-r0
 
+DELUGE_GTK=2.1.1-r8
 PIDGIN=2.14.12-r3
 
 .PHONY: build
@@ -90,6 +91,7 @@ build_alpine:
 		agetty=$(AGETTY) \
 		curl=$(CURL) \
 		dbus-x11=$(DBUS_X11) \
+		deluge-gtk=$(DELUGE_GTK) \
 		dnscrypt-proxy-openrc=$(DNSCRYPT_PROXY_OPENRC) \
 		dnscrypt-proxy=$(DNSCRYPT_PROXY) \
 		dnsmasq=$(DNSMASQ) \
