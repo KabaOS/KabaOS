@@ -6,10 +6,7 @@ mount -t proc none /proc
 mount -t sysfs none /sys
 mount -t devtmpfs none /dev
 
-start=$(date +%s)
-
-# Wait for up to 5 seconds for USBs to come in
-while [ $(( $(date +%s) - start )) -lt 5 ]; do
+while true; do
     # Mount the root filesystem.
     for i in $(blkid | cut -d':' -f1); do
         # Some ISO9660 magic to get the creation date and match it with the date we have
@@ -33,5 +30,3 @@ while [ $(( $(date +%s) - start )) -lt 5 ]; do
         fi
     done
 done
-
-/bin/ash
