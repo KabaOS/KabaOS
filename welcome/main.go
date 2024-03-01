@@ -1,7 +1,6 @@
 package main
 
 import (
-	_ "embed"
 	"os"
 
 	"github.com/arthurmelton/KabaOS/welcome/pages"
