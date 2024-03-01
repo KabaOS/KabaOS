@@ -47,12 +47,13 @@ func newWelcome(app *gtk.Application) *window.Welcome {
 
 	w.Pages = []func(w *window.Welcome, increase bool){pages.Welcome, pages.Layout, pages.Wifi, pages.Finish}
 
-	w.Window = gtk.NewApplicationWindow(app)
+    _ = gtk.NewApplicationWindow(app)
+
+	w.Window = gtk.NewDialogWithFlags("", app.ActiveWindow(), gtk.DialogModal)
+    w.Window.SetDeletable(false)
+	w.Window.SetResizable(false)
 	w.Window.SetDefaultSize(400, 650)
 	w.Window.SetTitlebar(w.Header)
-
-	app.ActiveWindow().SetDeletable(false)
-	app.ActiveWindow().SetResizable(false)
 
 	w.Pages[w.Page](&w, true)
 

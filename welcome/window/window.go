@@ -9,7 +9,7 @@ import (
 
 type Welcome struct {
 	*gtk.Application
-	Window *gtk.ApplicationWindow
+	Window *gtk.Dialog
 	Header *gtk.HeaderBar
 
 	Page  int
