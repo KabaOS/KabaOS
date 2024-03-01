@@ -1,7 +1,6 @@
 package window
 
 import (
-	_ "embed"
 	"os"
 
 	"github.com/diamondburned/gotk4/pkg/gtk/v4"
