@@ -188,7 +188,7 @@ finish_initramfs:
 # WELCOME
 
 build_welcome:
-	cd welcome && CGO_LDFLAGS="-Xlinker -rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" go build -v -buildvcs=false github.com/arthurmelton/KabaOS/welcome
+	cd welcome && CGO_LDFLAGS="-w -s -Xlinker -rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" go build -v -buildvcs=false github.com/arthurmelton/KabaOS/welcome
 	mv welcome/welcome build/alpine/bin/
 
 # ISO
