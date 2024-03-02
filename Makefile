@@ -91,7 +91,6 @@ build_alpine:
 		agetty=$(AGETTY) \
 		curl=$(CURL) \
 		dbus-x11=$(DBUS_X11) \
-		deluge-gtk=$(DELUGE_GTK) \
 		dnscrypt-proxy-openrc=$(DNSCRYPT_PROXY_OPENRC) \
 		dnscrypt-proxy=$(DNSCRYPT_PROXY) \
 		dnsmasq=$(DNSMASQ) \
@@ -117,6 +116,7 @@ build_alpine:
 		xinit=$(XINIT) \
 		xorg-server=$(XORG_SERVER)" || true
 	chroot build/alpine /bin/ash -c "apk add \
+		deluge-gtk=$(DELUGE_GTK) \
 		pidgin=$(PIDGIN)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
