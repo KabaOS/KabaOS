@@ -25,6 +25,14 @@ var dat, _ = os.ReadFile("/usr/share/X11/xkb/rules/base.lst") // should never fa
 var layouts = getLayouts(string(dat))
 var variants = getVariants(string(dat))
 
+var selected = struct {
+	a uint
+	b uint
+}{
+	getId("us"),
+	0,
+}
+
 func Layout(w *window.Welcome, increase bool) {
 	screen := gtk.NewBox(gtk.OrientationVertical, 0)
 
@@ -38,13 +46,18 @@ func Layout(w *window.Welcome, increase bool) {
 		variantNames := getVariantNames(layouts[language.Selected()].code)
 		layoutList.Splice(0, layoutListSize, variantNames)
 		layoutListSize = uint(len(variantNames))
+		selected.a = language.Selected()
+		layout.SetSelected(0)
 	})
 
 	layout.Connect("notify::selected", func() {
 		updateLayout(getLayoutString(layouts[language.Selected()].code, getVariantNames(layouts[language.Selected()].code)[layout.Selected()]))
+		selected.b = layout.Selected()
 	})
 
-	language.SetSelected(getId("us"))
+	tmpb := selected.b
+	language.SetSelected(selected.a)
+	layout.SetSelected(tmpb)
 
 	screen.Append(language)
 	screen.Append(layout)
