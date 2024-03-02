@@ -25,45 +25,42 @@ var dat, _ = os.ReadFile("/usr/share/X11/xkb/rules/base.lst") // should never fa
 var layouts = getLayouts(string(dat))
 var variants = getVariants(string(dat))
 
-var selected = struct {
-	a uint
-	b uint
-}{
-	getId("us"),
-	0,
-}
+
+var firstTimeLayout = true
+var screenLayout *gtk.Box
 
 func Layout(w *window.Welcome, increase bool) {
-	screen := gtk.NewBox(gtk.OrientationVertical, 0)
+    if firstTimeLayout {
+        init_()
+        firstTimeLayout = false
+    }
 
-	layoutListSize := uint(0)
-	layoutList := gtk.NewStringList([]string{})
+    w.Window.SetTitle("Select a keyboard layout")
+    w.Window.SetChild(screenLayout)
+}
 
-	layout := gtk.NewDropDown(&layoutList.ListModel, nil)
+func init_() {
+    layoutListSize := uint(0)
+    layoutList := gtk.NewStringList([]string{})
 
-	language := gtk.NewDropDownFromStrings(getNames())
-	language.Connect("notify::selected", func() {
-		variantNames := getVariantNames(layouts[language.Selected()].code)
-		layoutList.Splice(0, layoutListSize, variantNames)
-		layoutListSize = uint(len(variantNames))
-		selected.a = language.Selected()
-		layout.SetSelected(0)
-	})
+    layout := gtk.NewDropDown(&layoutList.ListModel, nil)
 
-	layout.Connect("notify::selected", func() {
-		updateLayout(getLayoutString(layouts[language.Selected()].code, getVariantNames(layouts[language.Selected()].code)[layout.Selected()]))
-		selected.b = layout.Selected()
-	})
+    language := gtk.NewDropDownFromStrings(getNames())
 
-	tmpb := selected.b
-	language.SetSelected(selected.a)
-	layout.SetSelected(tmpb)
+    screenLayout = NewBoxWith(gtk.OrientationVertical, 0, []gtk.Widgetter{language, layout})
 
-	screen.Append(language)
-	screen.Append(layout)
+    language.Connect("notify::selected", func() {
+    	variantNames := getVariantNames(layouts[language.Selected()].code)
+    	layoutList.Splice(0, layoutListSize, variantNames)
+    	layoutListSize = uint(len(variantNames))
+    	layout.SetSelected(0)
+    })
 
-	w.Window.SetTitle("Select a keyboard layout")
-	w.Window.SetChild(screen)
+    layout.Connect("notify::selected", func() {
+    	updateLayout(getLayoutString(layouts[language.Selected()].code, getVariantNames(layouts[language.Selected()].code)[layout.Selected()]))
+    })
+
+    language.SetSelected(getId("us"))
 }
 
 func getLayouts(base string) []layout {
