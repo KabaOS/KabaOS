@@ -21,6 +21,7 @@ while true; do
                 mount -t overlay overlay -o lowerdir=/mnt/squashfs,upperdir=/mnt/tmpfs/upper,workdir=/mnt/tmpfs/root /mnt/tmpfs/root
                 mkdir -p /mnt/tmpfs/root/lib/firmware
                 cp -r /lib/firmware/. /mnt/tmpfs/root/lib/firmware/
+                echo "${i}" > /mnt/tmpfs/root/var/root
 
                 # Clean up.
                 umount /proc

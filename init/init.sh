@@ -4,6 +4,8 @@ mount -o nosuid,nodev,noexec,hidepid=2 -t proc none /proc
 mount -t sysfs none /sys
 mount -t devtmpfs dev /dev -o mode=0755,nosuid
 
+/bin/ash -c "inotifywait -e delete_self '$(cat /var/root)' && poweroff" &
+
 net.ipv6.conf.all.use_tempaddr=2
 net.ipv6.conf.default.use_tempaddr=2
 sysctl fs.protected_fifos=2
