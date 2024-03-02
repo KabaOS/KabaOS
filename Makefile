@@ -141,7 +141,7 @@ build_alpine:
 finish_alpine:
 	mkdir -p build/alpine/dev
 	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
-	cd build/alpine && find . -print0 ! -path './bin/busybox' | cpio --null --create --verbose --format=newc | zstd -T$(JOBS) $(ZSTD_ARGS) --progress > ../mnt/alpine.cpio.zst
+	mksquashfs build/alpine build/mnt/alpine.zst.squashfs -noappend -comp zstd $(shell if [ "$(FAST)" != "y" ]; then echo "-Xcompression-level 22"; fi)
 
 # WHEREACE
 download_whence:
@@ -169,7 +169,7 @@ build_kernel:
 # INITRAMFS
 
 build_initramfs:
-	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/root,proc,root,sbin,sys}
+	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/squashfs,mnt/tmpfs,proc,root,sbin,sys}
 	install -D -m 644 /etc/resolv.conf build/initramfs/etc/resolv.conf
 	chroot build/initramfs /bin/ash -c "apk update" || true
 	chroot build/initramfs /bin/ash -c "apk add \
@@ -200,7 +200,7 @@ create_img:
 	touch build/mnt/boot/grub/KabaOS.uuid
 
 build_iso:
-	sed -i 's/$$HASH/$(shell sha256sum build/mnt/alpine.cpio.zst | cut -c-64)/g' build/mnt/boot/grub/grub.cfg
+	sed -i 's/$$HASH/$(shell sha256sum build/mnt/alpine.zst.squashfs | cut -c-64)/g' build/mnt/boot/grub/grub.cfg
 	grub-mkrescue --compress=xz -o KabaOS.iso build/mnt -- -volid KabaOS
 
 # CONFIG
