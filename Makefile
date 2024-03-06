@@ -190,8 +190,9 @@ finish_initramfs:
 # WELCOME
 
 build_welcome:
-	cd welcome && CGO_LDFLAGS="-w -s -Xlinker -rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" go build -v -buildvcs=false github.com/arthurmelton/KabaOS/welcome
-	mv welcome/welcome build/alpine/bin/
+	cd welcome && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 welcome/zig-out/bin/welcome
+	mv welcome/zig-out/bin/welcome build/alpine/bin/
 
 # ISO
 
