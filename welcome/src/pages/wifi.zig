@@ -5,7 +5,7 @@ const update = @import("../move.zig").update;
 const window = @import("../main.zig").global_window;
 
 pub fn wifi(forward: bool) void {
-    if (ipAddressCount() catch @panic("Failed to read /proc/net/route") > 0) {
+    if (has_ip_address() catch @panic("Failed to read /proc/net/route")) {
         update(forward);
         return;
     }
@@ -17,21 +17,14 @@ pub fn wifi(forward: bool) void {
     c.gtk_window_set_title(@as(*c.GtkWindow, @ptrCast(window.window.?)), "Select Wifi");
 }
 
-fn ipAddressCount() !usize {
+fn has_ip_address() !bool {
     const file = try std.fs.openFileAbsolute("/proc/net/route", .{});
     defer file.close();
 
     var buf_reader = std.io.bufferedReader(file.reader());
     const reader = buf_reader.reader();
 
-    const line = try allocator.alloc(u8, 128);
-    defer allocator.free(line);
+    const line: [129]u8 = undefined;
 
-    var count: usize = 0;
-
-    while ((try reader.read(line)) > 0) {
-        count += 1;
-    }
-
-    return count - 1;
+    return (try reader.read(@as([]u8, @constCast(&line)))) == 129;
 }
