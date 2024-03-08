@@ -1,5 +1,5 @@
 const std = @import("std");
-const move = @import("move.zig");
+const page_update = @import("move.zig").page_update;
 const c = @cImport(@cInclude("gtk/gtk.h"));
 
 pub const allocator = std.heap.c_allocator;
@@ -12,10 +12,10 @@ pub const global_window = struct {
     pub var finish: ?*c.GtkWidget = null;
 
     pub const functions = [_]*const fn (bool) void{
-        @import("pages/welcome.zig").welcome,
-        @import("pages/layout.zig").layout,
-        @import("pages/wifi.zig").wifi,
-        @import("pages/finish.zig").finish,
+        @import("pages/welcome.zig").page,
+        @import("pages/layout.zig").page,
+        @import("pages/wifi.zig").page,
+        @import("pages/finish.zig").page,
     };
     pub var index: usize = 0;
 
@@ -31,19 +31,19 @@ pub fn main() !u8 {
     const app = c.gtk_application_new("com.github.arthurmelton.KabaOS.Welcome", c.G_APPLICATION_DEFAULT_FLAGS) orelse @panic("null app :(");
     defer c.g_object_unref(app);
 
-    _ = c.g_signal_connect_data(app, "activate", @as(c.GCallback, @ptrCast(&newWelcome)), null, null, 0);
+    _ = c.g_signal_connect_data(app, "activate", @as(c.GCallback, @ptrCast(&welcome_new_main)), null, null, 0);
     const status = c.g_application_run(@as(*c.GApplication, @ptrCast(app)), 0, null);
 
     return @intCast(status);
 }
 
-fn newWelcome(app: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
+fn welcome_new_main(app: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
     const back = c.gtk_button_new_from_icon_name("go-previous");
     c.gtk_widget_hide(back);
     c.gtk_widget_set_tooltip_text(back, "Back");
     _ = c.g_signal_connect_data(back, "clicked", @as(c.GCallback, @ptrCast(&struct {
         fn f(_: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
-            move.update(false);
+            page_update(false);
         }
     }.f)), null, null, 0);
     global_window.back = back;
@@ -52,7 +52,7 @@ fn newWelcome(app: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
     c.gtk_widget_set_tooltip_text(next, "Next");
     _ = c.g_signal_connect_data(next, "clicked", @as(c.GCallback, @ptrCast(&struct {
         fn f(_: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
-            move.update(true);
+            page_update(true);
         }
     }.f)), null, null, 0);
     global_window.next = next;
@@ -62,7 +62,7 @@ fn newWelcome(app: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
     c.gtk_widget_hide(finish);
     _ = c.g_signal_connect_data(finish, "clicked", @as(c.GCallback, @ptrCast(&struct {
         fn f(_: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
-            move.update(true);
+            page_update(true);
         }
     }.f)), null, null, 0);
     global_window.finish = finish;

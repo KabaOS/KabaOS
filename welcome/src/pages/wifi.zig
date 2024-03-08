@@ -1,12 +1,13 @@
 const allocator = @import("../main.zig").allocator;
 const c = @cImport(@cInclude("gtk/gtk.h"));
 const std = @import("std");
-const update = @import("../move.zig").update;
+const page_update = @import("../move.zig").page_update;
 const window = @import("../main.zig").global_window;
+const assert = std.debug.assert;
 
-pub fn wifi(forward: bool) void {
-    if (has_ip_address() catch @panic("Failed to read /proc/net/route")) {
-        update(forward);
+pub fn page(forward: bool) void {
+    if (ip_address_has() catch @panic("Failed to read /proc/net/route")) {
+        page_update(forward);
         return;
     }
 
@@ -17,7 +18,7 @@ pub fn wifi(forward: bool) void {
     c.gtk_window_set_title(@as(*c.GtkWindow, @ptrCast(window.window.?)), "Select Wifi");
 }
 
-fn has_ip_address() !bool {
+fn ip_address_has() !bool {
     const file = try std.fs.openFileAbsolute("/proc/net/route", .{});
     defer file.close();
 
@@ -26,5 +27,8 @@ fn has_ip_address() !bool {
 
     const line: [129]u8 = undefined;
 
-    return (try reader.read(@as([]u8, @constCast(&line)))) == 129;
+    const read = (try reader.read(@as([]u8, @constCast(&line))));
+
+    assert(read == 129 or read == 128);
+    return read == 129;
 }

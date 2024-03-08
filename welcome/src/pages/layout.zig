@@ -25,17 +25,10 @@ var layoutDD: ?*c.GtkWidget = null;
 var languageDD: ?*c.GtkWidget = null;
 var screenLayout: ?*c.GtkWidget = null;
 
-pub fn layout(_: bool) void {
-    init();
-
-    c.gtk_window_set_child(@as(*c.GtkWindow, @ptrCast(window.window.?)), screenLayout);
-    c.gtk_window_set_title(@as(*c.GtkWindow, @ptrCast(window.window.?)), "Select a keyboard layout");
-}
-
-fn init() void {
+pub fn page(_: bool) void {
     if (first) {
         first = false;
-        setLayouts() catch @panic("Something is wrong with your xkb base.lsl");
+        layouts_set() catch @panic("Something is wrong with your xkb base.lsl");
     }
 
     const languageList = c.gtk_string_list_new(null);
@@ -71,7 +64,7 @@ fn init() void {
             const selectedLanguage = c.gtk_drop_down_get_selected(@as(*c.GtkDropDown, @ptrCast(languageDD)));
             const selectedVariant = c.gtk_drop_down_get_selected(@as(*c.GtkDropDown, @ptrCast(layoutDD)));
             if (selectedVariant == 0) {
-                update_layout(layouts.code.items[selectedLanguage][0..2]);
+                layout_update(layouts.code.items[selectedLanguage][0..2]);
             } else {
                 const currentLanguage = layouts.code.items[selectedLanguage];
                 var currentVariant: ?[]u8 = null;
@@ -91,7 +84,7 @@ fn init() void {
                 std.mem.copyForwards(u8, result[0..], currentLanguage);
                 result[currentLanguage.len - 1] = '+';
                 std.mem.copyForwards(u8, result[currentLanguage.len..], currentVariant.?);
-                update_layout(result);
+                layout_update(result);
             }
             window.pages.layout.variantSelected = @intCast(selectedVariant);
         }
@@ -115,9 +108,12 @@ fn init() void {
     }
 
     c.gtk_drop_down_set_selected(@as(*c.GtkDropDown, @ptrCast(layoutDD)), @intCast(tmpSelected));
+
+    c.gtk_window_set_child(@as(*c.GtkWindow, @ptrCast(window.window.?)), screenLayout);
+    c.gtk_window_set_title(@as(*c.GtkWindow, @ptrCast(window.window.?)), "Select a keyboard layout");
 }
 
-fn setLayouts() !void {
+fn layouts_set() !void {
     const file = try std.fs.openFileAbsolute("/usr/share/X11/xkb/rules/base.lst", .{});
     defer file.close();
 
@@ -226,7 +222,7 @@ fn setLayouts() !void {
     _ = layouts.code.pop();
 }
 
-fn update_layout(name: []const u8) void {
+fn layout_update(name: []const u8) void {
     const settings = c.g_settings_new("org.gnome.desktop.input-sources");
     _ = c.g_settings_set_value(settings, "sources", c.g_variant_new_array(c.g_variant_type_new("(ss)"), &[_]?*c.GVariant{c.g_variant_new_tuple(&[_]?*c.GVariant{ c.g_variant_new_string("xkb"), c.g_variant_new_string(@as([*c]const u8, @ptrCast(name))) }, 2)}, 1));
 }
