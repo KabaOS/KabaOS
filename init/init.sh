@@ -49,6 +49,8 @@ sysctl vm.mmap_rnd_compat_bits=16
 
 iptables-restore < /root/iptables.rules
 
+/sbin/kloak &
+
 rfkill block all
 rfkill unblock wifi
 

@@ -37,6 +37,7 @@ I2PD=2.49.0-r1
 INOTIFY_TOOLS=4.23.9.0-r0
 IPTABLES=1.8.10-r3
 LIBREWOLF=123.0_p1-r0
+LIBSODIUM=1.0.19-r0
 MESA_DRI_GALLIUM=23.3.6-r0
 NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
@@ -50,6 +51,8 @@ XF86_INPUT_LIBINPUT=1.4.0-r0
 XINIT=1.4.2-r1
 XORG_SERVER=21.1.11-r0
 
+KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
+
 DELUGE_GTK=2.1.1-r8
 PIDGIN=2.14.12-r3
 
@@ -57,9 +60,9 @@ PIDGIN=2.14.12-r3
 
 all: download build
 
-download: download_alpine download_kernel download_whence
+download: download_alpine download_kernel download_whence download_kloak
 
-build: create_img build_kernel build_alpine build_initramfs config build_welcome finish_alpine finish_initramfs build_iso
+build: create_img build_kernel build_alpine build_initramfs config build_welcome build_kloak finish_alpine finish_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -105,6 +108,7 @@ build_alpine:
 		inotify-tools=$(INOTIFY_TOOLS) \
 		iptables=$(IPTABLES) \
 		librewolf=$(LIBREWOLF) \
+		libsodium=$(LIBSODIUM) \
 		mesa-dri-gallium=$(MESA_DRI_GALLIUM) \
 		nautilus=$(NAUTILUS) \
 		networkmanager-wifi=$(NETWORKMANAGER_WIFI) \
@@ -193,6 +197,18 @@ build_welcome:
 	cd welcome && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 welcome/zig-out/bin/welcome
 	mv welcome/zig-out/bin/welcome build/alpine/bin/
+
+# KLOAK
+
+download_kloak:
+	curl -L "https://github.com/vmonaco/kloak/archive/$(KLOAK).tar.gz" -o kloak.tar.gz
+	tar -xzf kloak.tar.gz
+	mv kloak-$(KLOAK) build/kloak
+	rm kloak.tar.gz
+
+build_kloak:
+	cd build/kloak && CFLAGS="-Wl,-rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" make kloak
+	mv build/kloak/kloak build/alpine/sbin
 
 # ISO
 
