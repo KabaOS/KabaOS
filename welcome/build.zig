@@ -16,10 +16,6 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("gio-2.0");
     exe.linkSystemLibrary("glib-2.0");
 
-    if (optimize == std.builtin.Mode.ReleaseFast) {
-        exe.addRPath(.{ .path = "../build/alpine/lib" });
-    }
-
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
