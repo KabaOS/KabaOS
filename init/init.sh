@@ -6,8 +6,6 @@ mount -t devtmpfs dev /dev -o mode=0755,nosuid
 
 /bin/ash -c "inotifywait -e delete_self '$(cat /var/root)' && poweroff" &
 
-net.ipv6.conf.all.use_tempaddr=2
-net.ipv6.conf.default.use_tempaddr=2
 sysctl fs.protected_fifos=2
 sysctl fs.protected_hardlinks=1
 sysctl fs.protected_regular=2
@@ -40,10 +38,11 @@ sysctl net.ipv4.tcp_timestamps=0
 sysctl net.ipv6.conf.all.accept_ra=0
 sysctl net.ipv6.conf.all.accept_redirects=0
 sysctl net.ipv6.conf.all.accept_source_route=0
+sysctl net.ipv6.conf.all.use_tempaddr=2
 sysctl net.ipv6.conf.default.accept_ra=0
 sysctl net.ipv6.conf.default.accept_redirects=0
 sysctl net.ipv6.conf.default.accept_source_route=0
-sysctl user.max_user_namespaces=0
+sysctl net.ipv6.conf.default.use_tempaddr=2
 sysctl vm.mmap_rnd_bits=32
 sysctl vm.mmap_rnd_compat_bits=16
 

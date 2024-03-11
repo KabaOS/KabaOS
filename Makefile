@@ -38,6 +38,7 @@ INOTIFY_TOOLS=4.23.9.0-r0
 IPTABLES=1.8.10-r3
 LIBREWOLF=123.0_p1-r0
 LIBSODIUM=1.0.19-r0
+MAT2=0.13.4-r1
 MESA_DRI_GALLIUM=23.3.6-r0
 NAUTILUS=45.2.1-r0
 NETWORKMANAGER=1.44.2-r1
@@ -55,14 +56,15 @@ KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 
 DELUGE_GTK=2.1.1-r8
 PIDGIN=2.14.12-r3
+METADATA_CLEANER=2.5.4
 
 .PHONY: build
 
 all: download build
 
-download: download_alpine download_kernel download_whence download_kloak
+download: download_alpine download_kernel download_whence download_kloak download_metadata_cleaner
 
-build: create_img build_kernel build_alpine build_initramfs config build_welcome build_kloak finish_alpine finish_initramfs build_iso
+build: create_img build_kernel build_alpine build_initramfs build_welcome build_kloak build_metadata_cleaner config finish_alpine finish_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -109,6 +111,7 @@ build_alpine:
 		iptables=$(IPTABLES) \
 		librewolf=$(LIBREWOLF) \
 		libsodium=$(LIBSODIUM) \
+		mat2=$(MAT2) \
 		mesa-dri-gallium=$(MESA_DRI_GALLIUM) \
 		nautilus=$(NAUTILUS) \
 		networkmanager-wifi=$(NETWORKMANAGER_WIFI) \
@@ -210,6 +213,20 @@ build_kloak:
 	cd build/kloak && CFLAGS="-Wl,-rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" make kloak
 	mv build/kloak/kloak build/alpine/sbin
 
+# METADATA CLEANER
+
+download_metadata_cleaner:
+	curl -L "https://gitlab.com/rmnvgr/metadata-cleaner/-/archive/v$(METADATA_CLEANER)/metadata-cleaner-v$(METADATA_CLEANER).tar.gz" -o metadata-cleaner.tar.gz
+	tar -xzf metadata-cleaner.tar.gz
+	mv metadata-cleaner-v$(METADATA_CLEANER) build/metadata-cleaner
+	rm metadata-cleaner.tar.gz
+
+build_metadata_cleaner:
+	cd build/metadata-cleaner && meson builddir
+	cd build/metadata-cleaner && meson configure -Dprefix=$(shell pwd)/build/alpine -Ddatadir=usr/share builddir
+	cd build/metadata-cleaner && meson install -C builddir
+	chroot build/alpine /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/
+
 # ISO
 
 create_img:
@@ -264,6 +281,10 @@ config_user_init:
 CONFIG_TARGETS += config_home
 config_home:
 	chroot build/alpine /bin/ash -c 'chown -R $$(id -u Kaba):$$(id -g Kaba) /home/Kaba'
+
+CONFIG_TARGETS += config_zz_replace_install_root
+config_zz_replace_install_root:
+	find build/alpine -type f -exec sed -i -e 's/$(shell pwd | sed 's/\//\\\//g')\/build\/alpine//g' {} \;
 
 clean:
 	rm -rf build
