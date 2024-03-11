@@ -14,17 +14,17 @@ pub fn page_update(forward: bool) void {
     }
 
     if (window.index > 0) {
-        c.gtk_widget_show(window.back);
+        c.gtk_widget_show(@ptrCast(window.back));
     } else {
-        c.gtk_widget_hide(window.back);
+        c.gtk_widget_hide(@ptrCast(window.back));
     }
 
     if (window.index < window.functions.len - 1) {
-        c.gtk_widget_show(window.next);
-        c.gtk_widget_hide(window.finish);
+        c.gtk_widget_show(@ptrCast(window.next));
+        c.gtk_widget_hide(@ptrCast(window.finish));
     } else {
-        c.gtk_widget_hide(window.next);
-        c.gtk_widget_show(window.finish);
+        c.gtk_widget_hide(@ptrCast(window.next));
+        c.gtk_widget_show(@ptrCast(window.finish));
     }
 
     window.functions[window.index](forward);

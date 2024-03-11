@@ -12,10 +12,10 @@ pub fn page(forward: bool) void {
     }
 
     const box = c.gtk_box_new(c.GTK_ORIENTATION_VERTICAL, 0);
-    c.gtk_box_append(@as(*c.GtkBox, @ptrCast(box)), c.gtk_label_new("(wifi selector)"));
-    c.gtk_window_set_child(@as(*c.GtkWindow, @ptrCast(window.window.?)), box);
+    c.gtk_box_append(@ptrCast(box), c.gtk_label_new("(wifi selector)"));
+    c.gtk_window_set_child(@ptrCast(window.window.?), box);
 
-    c.gtk_window_set_title(@as(*c.GtkWindow, @ptrCast(window.window.?)), "Select Wifi");
+    c.gtk_window_set_title(@ptrCast(window.window.?), "Select Wifi");
 }
 
 fn ip_address_has() !bool {
@@ -27,7 +27,7 @@ fn ip_address_has() !bool {
 
     const line: [129]u8 = undefined;
 
-    const read = (try reader.read(@as([]u8, @constCast(&line))));
+    const read = (try reader.read(@constCast(&line)));
 
     assert(read == 129 or read == 128);
     return read == 129;

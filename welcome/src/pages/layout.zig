@@ -5,6 +5,7 @@ const c = @cImport({
     @cInclude("gtk/gtk.h");
     @cInclude("gio/gio.h");
     @cInclude("glib.h");
+    @cInclude("adwaita.h");
 });
 
 var first = true;
@@ -23,6 +24,7 @@ var layoutList: ?*c.GtkStringList = null;
 var layoutLength: u32 = 0;
 var layoutDD: ?*c.GtkWidget = null;
 var languageDD: ?*c.GtkWidget = null;
+var layoutHolder: ?*c.GtkWidget = null;
 var screenLayout: ?*c.GtkWidget = null;
 
 pub fn page(_: bool) void {
@@ -39,30 +41,34 @@ pub fn page(_: bool) void {
     for (layouts.name.items) |x| {
         c.gtk_string_list_append(languageList, x.ptr);
     }
-    languageDD = c.gtk_drop_down_new(@as(*c.GListModel, @ptrCast(languageList)), null);
+    languageDD = c.adw_combo_row_new();
+    c.adw_combo_row_set_model(@ptrCast(languageDD), @ptrCast(languageList));
+    c.g_object_set(languageDD, "title", "Language", c.NULL);
 
-    _ = c.g_signal_connect_data(languageDD, "notify::selected", @as(c.GCallback, @ptrCast(&struct {
+    _ = c.g_signal_connect_data(languageDD, "notify::selected", @ptrCast(&struct {
         fn f(_: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
             c.gtk_string_list_splice(layoutList, 1, layoutLength, null);
             layoutLength = 0;
-            const selected = layouts.code.items[c.gtk_drop_down_get_selected(@as(*c.GtkDropDown, @ptrCast(languageDD)))];
+            const selected = layouts.code.items[c.adw_combo_row_get_selected(@ptrCast(languageDD))];
             for (variants.name.items, variants.code.items) |x, i| {
                 if (std.mem.eql(u8, i, selected)) {
                     c.gtk_string_list_append(layoutList, x.ptr);
                     layoutLength += 1;
                 }
             }
-            window.pages.layout.languageSelected = @intCast(c.gtk_drop_down_get_selected(@as(*c.GtkDropDown, @ptrCast(languageDD))));
-            c.gtk_drop_down_set_selected(@as(*c.GtkDropDown, @ptrCast(layoutDD)), 0);
+            window.pages.layout.languageSelected = @intCast(c.adw_combo_row_get_selected(@ptrCast(languageDD)));
+            c.adw_combo_row_set_selected(@ptrCast(layoutDD), 0);
         }
-    }.f)), null, null, 0);
+    }.f), null, null, 0);
 
-    layoutDD = c.gtk_drop_down_new(@as(*c.GListModel, @ptrCast(layoutList)), null);
+    layoutDD = c.adw_combo_row_new();
+    c.adw_combo_row_set_model(@ptrCast(layoutDD), @ptrCast(layoutList));
+    c.g_object_set(layoutDD, "title", "Layout", c.NULL);
 
-    _ = c.g_signal_connect_data(layoutDD, "notify::selected", @as(c.GCallback, @ptrCast(&struct {
+    _ = c.g_signal_connect_data(layoutDD, "notify::selected", @ptrCast(&struct {
         fn f(_: *c.GtkApplication, _: c.gpointer) callconv(.C) void {
-            const selectedLanguage = c.gtk_drop_down_get_selected(@as(*c.GtkDropDown, @ptrCast(languageDD)));
-            const selectedVariant = c.gtk_drop_down_get_selected(@as(*c.GtkDropDown, @ptrCast(layoutDD)));
+            const selectedLanguage = c.adw_combo_row_get_selected(@ptrCast(languageDD));
+            const selectedVariant = c.adw_combo_row_get_selected(@ptrCast(layoutDD));
             if (selectedVariant == 0) {
                 layout_update(layouts.code.items[selectedLanguage][0..2]);
             } else {
@@ -88,29 +94,41 @@ pub fn page(_: bool) void {
             }
             window.pages.layout.variantSelected = @intCast(selectedVariant);
         }
-    }.f)), null, null, 0);
+    }.f), null, null, 0);
+
+    layoutHolder = c.gtk_list_box_new();
+
+    c.gtk_list_box_set_selection_mode(@ptrCast(layoutHolder), c.GTK_SELECTION_NONE);
+    c.gtk_widget_add_css_class(@ptrCast(layoutHolder), "boxed-list");
+
+    c.gtk_list_box_append(@ptrCast(layoutHolder), languageDD);
+    c.gtk_list_box_append(@ptrCast(layoutHolder), layoutDD);
 
     screenLayout = c.gtk_box_new(c.GTK_ORIENTATION_VERTICAL, 0);
-    c.gtk_box_append(@as(*c.GtkBox, @ptrCast(screenLayout.?)), languageDD);
-    c.gtk_box_append(@as(*c.GtkBox, @ptrCast(screenLayout.?)), layoutDD);
+    c.gtk_box_set_spacing(@ptrCast(screenLayout), 18);
+    c.gtk_widget_set_margin_top(screenLayout, 24);
+    c.gtk_widget_set_margin_bottom(screenLayout, 24);
+    c.gtk_widget_set_margin_start(screenLayout, 12);
+    c.gtk_widget_set_margin_end(screenLayout, 12);
+    c.gtk_box_append(@ptrCast(screenLayout.?), layoutHolder);
 
     const tmpSelected = window.pages.layout.variantSelected;
 
     if (window.pages.layout.languageSelected == -1) {
         for (layouts.code.items, 0..) |code, i| {
             if (std.mem.eql(u8, code[0..2], "us")) {
-                c.gtk_drop_down_set_selected(@as(*c.GtkDropDown, @ptrCast(languageDD)), @intCast(i));
+                c.adw_combo_row_set_selected(@ptrCast(languageDD), @intCast(i));
                 break;
             }
         }
     } else {
-        c.gtk_drop_down_set_selected(@as(*c.GtkDropDown, @ptrCast(languageDD)), @intCast(window.pages.layout.languageSelected));
+        c.adw_combo_row_set_selected(@ptrCast(languageDD), @intCast(window.pages.layout.languageSelected));
     }
 
-    c.gtk_drop_down_set_selected(@as(*c.GtkDropDown, @ptrCast(layoutDD)), @intCast(tmpSelected));
+    c.adw_combo_row_set_selected(@ptrCast(layoutDD), @intCast(tmpSelected));
 
-    c.gtk_window_set_child(@as(*c.GtkWindow, @ptrCast(window.window.?)), screenLayout);
-    c.gtk_window_set_title(@as(*c.GtkWindow, @ptrCast(window.window.?)), "Select a keyboard layout");
+    c.gtk_window_set_child(@ptrCast(window.window.?), screenLayout);
+    c.gtk_window_set_title(@ptrCast(window.window.?), "Select a keyboard layout");
 }
 
 fn layouts_set() !void {
@@ -224,5 +242,5 @@ fn layouts_set() !void {
 
 fn layout_update(name: []const u8) void {
     const settings = c.g_settings_new("org.gnome.desktop.input-sources");
-    _ = c.g_settings_set_value(settings, "sources", c.g_variant_new_array(c.g_variant_type_new("(ss)"), &[_]?*c.GVariant{c.g_variant_new_tuple(&[_]?*c.GVariant{ c.g_variant_new_string("xkb"), c.g_variant_new_string(@as([*c]const u8, @ptrCast(name))) }, 2)}, 1));
+    _ = c.g_settings_set_value(settings, "sources", c.g_variant_new_array(c.g_variant_type_new("(ss)"), &[_]?*c.GVariant{c.g_variant_new_tuple(&[_]?*c.GVariant{ c.g_variant_new_string("xkb"), c.g_variant_new_string(@ptrCast(name)) }, 2)}, 1));
 }

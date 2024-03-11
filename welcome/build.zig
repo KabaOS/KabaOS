@@ -15,6 +15,7 @@ pub fn build(b: *std.Build) void {
     exe.linkSystemLibrary("gtk4");
     exe.linkSystemLibrary("gio-2.0");
     exe.linkSystemLibrary("glib-2.0");
+    exe.linkSystemLibrary("libadwaita-1");
 
     b.installArtifact(exe);
 
