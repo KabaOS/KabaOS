@@ -33,6 +33,7 @@ GCOMPAT=1.1.0-r4
 GDM=45.0.1-r0
 GNOME_CONSOLE=45.0-r1
 GNOME_TEXT_EDITOR=45.2-r0
+GNUPG_SCDAEMON=2.4.4-r0
 HARDENED_MALLOC=12-r1
 I2PD=2.49.0-r1
 INOTIFY_TOOLS=4.23.9.0-r0
@@ -57,6 +58,7 @@ KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 
 DELUGE_GTK=2.1.1-r8
 KEEPASSXC=2.7.6-r2
+KLEOPATRA=23.08.4-r0
 METADATA_CLEANER=2.5.4
 PIDGIN=2.14.12-r3
 
@@ -108,11 +110,13 @@ build_alpine:
 		gdm=$(GDM) \
 		gnome-console=$(GNOME_CONSOLE) \
 		gnome-text-editor=$(GNOME_TEXT_EDITOR) \
+		gnupg-scdaemon=$(GNUPG_SCDAEMON) \
 		hardened-malloc=$(HARDENED_MALLOC) \
 		i2pd=$(I2PD) \
 		inotify-tools=$(INOTIFY_TOOLS) \
 		iptables=$(IPTABLES) \
 		keepassxc=$(KEEPASSXC) \
+		kleopatra=$(KLEOPATRA) \
 		librewolf=$(LIBREWOLF) \
 		libsodium=$(LIBSODIUM) \
 		mat2=$(MAT2) \
