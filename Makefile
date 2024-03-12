@@ -21,6 +21,7 @@ ZSTD=1.5.5-r8
 AMD_UCODE=20240115-r0
 INTEL_UCODE=20231114-r0
 
+AGE=1.1.1-r9
 AGETTY=2.39.3-r0
 CHRONY=4.5-r0
 CURL=8.5.0-r0
@@ -98,6 +99,7 @@ build_alpine:
 		amd-ucode=$(AMD_UCODE) \
 		intel-ucode=$(INTEL_UCODE)" || true
 	chroot build/alpine /bin/ash -c "apk add \
+		age=$(AGE) \
 		agetty=$(AGETTY) \
 		chrony=$(CHRONY) \
 		curl=$(CURL) \
