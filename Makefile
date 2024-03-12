@@ -22,6 +22,7 @@ AMD_UCODE=20240115-r0
 INTEL_UCODE=20231114-r0
 
 AGETTY=2.39.3-r0
+CHRONY=4.5-r0
 CURL=8.5.0-r0
 DBUS_X11=1.14.10-r0
 DNSCRYPT_PROXY=2.1.5-r2
@@ -95,6 +96,7 @@ build_alpine:
 		intel-ucode=$(INTEL_UCODE)" || true
 	chroot build/alpine /bin/ash -c "apk add \
 		agetty=$(AGETTY) \
+		chrony=$(CHRONY) \
 		curl=$(CURL) \
 		dbus-x11=$(DBUS_X11) \
 		dnscrypt-proxy-openrc=$(DNSCRYPT_PROXY_OPENRC) \
@@ -141,6 +143,7 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "rc-update add elogind" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnsmasq" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnscrypt-proxy" || true
+	chroot build/alpine /bin/ash -c "rc-update add chronyd" || true
 	mkdir -p "build/alpine/root"
 	chroot build/alpine /bin/ash -c 'chown -R root:root "/root"' || true
 	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
@@ -245,6 +248,10 @@ CONFIG_TARGETS += config_default
 config_default:
 	cp -r config/mnt/* build/alpine
 
+CONFIG_TARGETS += config_chrony
+config_chrony:
+	mkdir -p build/alpine/var/run/chrony
+
 CONFIG_TARGETS += config_dbus
 config_dbus:
 	mkdir -p build/alpine/run/dbus
@@ -268,6 +275,7 @@ config_iptables:
 	cp config/iptables.rules build/alpine/root/iptables.rules || true
 	chroot build/alpine /bin/ash -c 'sed -i "s/\$$I2PD_ID/$$(id -u i2pd)/" /root/iptables.rules'
 	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules'
+	chroot build/alpine /bin/ash -c 'sed -i "s/\$$CHRONY_ID/$$(id -u chrony)/" /root/iptables.rules'
 
 CONFIG_TARGETS += config_ucode
 config_ucode:
