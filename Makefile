@@ -56,8 +56,9 @@ XORG_SERVER=21.1.11-r0
 KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 
 DELUGE_GTK=2.1.1-r8
-PIDGIN=2.14.12-r3
+KEEPASSXC=2.7.6-r2
 METADATA_CLEANER=2.5.4
+PIDGIN=2.14.12-r3
 
 .PHONY: build
 
@@ -111,6 +112,7 @@ build_alpine:
 		i2pd=$(I2PD) \
 		inotify-tools=$(INOTIFY_TOOLS) \
 		iptables=$(IPTABLES) \
+		keepassxc=$(KEEPASSXC) \
 		librewolf=$(LIBREWOLF) \
 		libsodium=$(LIBSODIUM) \
 		mat2=$(MAT2) \
