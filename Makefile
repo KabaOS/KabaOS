@@ -69,7 +69,7 @@ all: download build
 
 download: download_alpine download_kernel download_whence download_kloak download_metadata_cleaner
 
-build: create_img build_kernel build_alpine build_initramfs build_welcome build_kloak build_metadata_cleaner config finish_alpine finish_initramfs build_iso
+build: create_img build_kernel build_alpine build_initramfs build_welcome build_eepshare build_kloak build_metadata_cleaner config finish_alpine finish_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -211,6 +211,13 @@ build_welcome:
 	cd welcome && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 welcome/zig-out/bin/welcome
 	mv welcome/zig-out/bin/welcome build/alpine/bin/
+
+# WELCOME
+
+build_eepshare:
+	cd eepshare && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 eepshare/zig-out/bin/eepshare
+	mv eepshare/zig-out/bin/eepshare build/alpine/bin/
 
 # KLOAK
 
