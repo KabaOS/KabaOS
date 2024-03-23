@@ -162,6 +162,7 @@ pub fn handle(conn: *libsam3.Sam3Connection, option: server.options, key: [52]u8
         const file_name = std.fs.path.basenamePosix(path);
 
         const content_disposition = try allocator.alloc(u8, content_disposition_before.len + file_name.len + 1);
+        defer allocator.free(content_disposition);
 
         std.mem.copyForwards(u8, content_disposition, content_disposition_before);
         std.mem.copyForwards(u8, content_disposition[content_disposition_before.len..], file_name);
