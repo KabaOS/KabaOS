@@ -1,11 +1,13 @@
 const std = @import("std");
 const page_update = @import("move.zig").page_update;
-const c = @cImport({
-    @cInclude("gtk/gtk.h");
-    @cInclude("adwaita.h");
-});
 
 pub const allocator = std.heap.c_allocator;
+pub const c = @cImport({
+    @cInclude("gtk/gtk.h");
+    @cInclude("gio/gio.h");
+    @cInclude("glib.h");
+    @cInclude("adwaita.h");
+});
 
 pub const global_window = struct {
     pub var window: ?*c.GtkWidget = null;

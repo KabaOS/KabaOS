@@ -1,9 +1,9 @@
 const allocator = @import("../main.zig").allocator;
-const c = @cImport(@cInclude("gtk/gtk.h"));
-const std = @import("std");
-const page_update = @import("../move.zig").page_update;
-const window = @import("../main.zig").global_window;
 const assert = std.debug.assert;
+const c = @import("../main.zig").c;
+const page_update = @import("../move.zig").page_update;
+const std = @import("std");
+const window = @import("../main.zig").global_window;
 
 pub fn page(forward: bool) void {
     if (ip_address_has() catch @panic("Failed to read /proc/net/route")) {

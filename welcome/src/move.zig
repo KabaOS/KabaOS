@@ -1,6 +1,6 @@
+const c = @import("main.zig").c;
 const std = @import("std");
 const window = @import("main.zig").global_window;
-const c = @cImport(@cInclude("gtk/gtk.h"));
 
 pub fn page_update(forward: bool) void {
     if (forward) {

@@ -1,12 +1,7 @@
-const std = @import("std");
 const allocator = @import("../main.zig").allocator;
+const c = @import("../main.zig").c;
+const std = @import("std");
 const window = @import("../main.zig").global_window;
-const c = @cImport({
-    @cInclude("gtk/gtk.h");
-    @cInclude("gio/gio.h");
-    @cInclude("glib.h");
-    @cInclude("adwaita.h");
-});
 
 var first = true;
 

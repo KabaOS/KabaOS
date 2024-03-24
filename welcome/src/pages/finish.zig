@@ -1,5 +1,5 @@
+const c = @import("../main.zig").c;
 const window = @import("../main.zig").global_window;
-const c = @cImport(@cInclude("gtk/gtk.h"));
 
 pub fn page(_: bool) void {
     const box = c.gtk_box_new(c.GTK_ORIENTATION_VERTICAL, 0);
