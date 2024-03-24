@@ -208,15 +208,13 @@ finish_initramfs:
 # WELCOME
 
 build_welcome:
-	cd welcome && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
-	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 welcome/zig-out/bin/welcome
+	cd welcome && zig build -Doptimize=ReleaseFast -Ddynamic-linker=/lib/ld-musl-x86_64.so.1 # Hopefully musl and hardened malloc will save us if anything goes wrong
 	mv welcome/zig-out/bin/welcome build/alpine/bin/
 
 # WELCOME
 
 build_eepshare:
-	cd eepshare && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
-	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 eepshare/zig-out/bin/eepshare
+	cd eepshare && zig build -Doptimize=ReleaseFast -Ddynamic-linker=/lib/ld-musl-x86_64.so.1 # Hopefully musl and hardened malloc will save us if anything goes wrong
 	mv eepshare/zig-out/bin/eepshare build/alpine/bin/
 
 # KLOAK
