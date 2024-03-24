@@ -10,7 +10,7 @@ pub fn page_update(forward: bool) void {
     }
 
     if (window.index == window.functions.len) {
-        std.os.exit(0);
+        std.process.exit(0);
     }
 
     if (window.index > 0) {
