@@ -1,7 +1,7 @@
 const allocator = @import("main.zig").allocator;
 const base32 = @import("base32.zig");
 const http = @import("http.zig");
-const libsam3 = @cImport(@cInclude("libsam3.h"));
+const libsam3 = @import("main.zig").libsam3;
 const std = @import("std");
 
 pub const options = struct {

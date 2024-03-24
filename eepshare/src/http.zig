@@ -1,5 +1,5 @@
 const allocator = @import("main.zig").allocator;
-const libsam3 = @cImport(@cInclude("libsam3.h"));
+const libsam3 = @import("main.zig").libsam3;
 const server = @import("server.zig");
 const std = @import("std");
 
