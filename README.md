@@ -12,7 +12,16 @@ that make it run correctly over i2p.
 You can download the repository with the following.
 
 ```
-git clone https://github.com/arthurmelton/KabaOS
+git clone --recursive https://github.com/arthurmelton/KabaOS
+```
+
+If you are on alpine you can install all of the nessisary building programs by
+running the following (it will tell you to set an enviroment variable when
+running make, dont forget to do so):
+
+```sh
+./alpine_setup.sh
+
 ```
 
 Once you have the source code you can run the following to download all of the

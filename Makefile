@@ -1,4 +1,5 @@
 export CC=gcc
+export ZIGCC=zig
 export ARCH=$(shell arch)
 
 export CFLAGS=-pipe -mtune=generic -O2 -Wall
@@ -208,14 +209,14 @@ finish_initramfs:
 # WELCOME
 
 build_welcome:
-	cd welcome && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	cd welcome && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 welcome/zig-out/bin/welcome
 	mv welcome/zig-out/bin/welcome build/alpine/bin/
 
 # WELCOME
 
 build_eepshare:
-	cd eepshare && zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	cd eepshare && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 eepshare/zig-out/bin/eepshare
 	mv eepshare/zig-out/bin/eepshare build/alpine/bin/
 
