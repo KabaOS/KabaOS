@@ -4,8 +4,8 @@ An I2P based OS for security
 KabaOS is a live operating system based off of Alpine Linux that aims to help
 users stay anonymous online. All network traffic that is sent out of your
 computer is routed through the I2P network, keeping your data secure. KabaOS has
-programs for your every need (like a browser, irc client, etc), with defaults
-that make it run correctly over i2p.
+programs for your every need (like a browser, IRC client, etc.), with defaults
+that make it run correctly over I2P.
 
 ## Building
 
@@ -15,16 +15,16 @@ You can download the repository with the following.
 git clone --recursive https://github.com/arthurmelton/KabaOS
 ```
 
-If you are on alpine you can install all of the nessisary building programs by
-running the following (it will tell you to set an enviroment variable when
-running make, dont forget to do so):
+If you are on alpine, you can install all the necessary building programs by
+running the following (it will tell you to set an environment variable when
+running make, don't forget to do so):
 
 ```sh
 ./alpine_setup.sh
 
 ```
 
-Once you have the source code you can run the following to download all of the
+Once you have the source code, you can run the following to download all of the
 extra code that is needed. You only have to do this one time.
 
 ```
