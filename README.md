@@ -9,19 +9,24 @@ that make it run correctly over I2P.
 
 ## Building
 
+If you are on alpine, you can install all the necessary building programs by
+running the following:
+
+```sh
+apk add abuild bison curl desktop-file-utils elfutils-dev flex g++ gcc git glib-dev gmp-dev grub gtk4.0-dev itstool libadwaita-dev libevdev-dev libsodium-dev linux-headers make meson mpc1-dev mpfr-dev musl-dev openssl-dev patch patchelf perl squashfs-tools xorriso
+```
+
 You can download the repository with the following.
 
 ```
 git clone --recursive https://github.com/arthurmelton/KabaOS
 ```
 
-If you are on alpine, you can install all the necessary building programs by
-running the following (it will tell you to set an environment variable when
-running make, don't forget to do so):
+If your linux repository does not have some way of installing zig master, use
+this (and read the output):
 
 ```sh
-./alpine_setup.sh
-
+./install_zig.sh
 ```
 
 Once you have the source code, you can run the following to download all of the

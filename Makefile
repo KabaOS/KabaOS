@@ -27,8 +27,8 @@ AGETTY=2.39.3-r0
 CHRONY=4.5-r0
 CURL=8.5.0-r0
 DBUS_X11=1.14.10-r0
-DNSCRYPT_PROXY=2.1.5-r2
-DNSCRYPT_PROXY_OPENRC=2.1.5-r2
+DNSCRYPT_PROXY=2.1.5-r3
+DNSCRYPT_PROXY_OPENRC=2.1.5-r3
 DNSMASQ=2.90-r2
 EUDEV=3.2.14-r0
 GCOMPAT=1.1.0-r4
@@ -40,13 +40,13 @@ HARDENED_MALLOC=12-r1
 I2PD=2.49.0-r1
 INOTIFY_TOOLS=4.23.9.0-r0
 IPTABLES=1.8.10-r3
-LIBREWOLF=123.0_p1-r0
+LIBREWOLF=124.0.1_p1-r0
 LIBSODIUM=1.0.19-r0
 MAT2=0.13.4-r1
 MESA_DRI_GALLIUM=23.3.6-r0
 NAUTILUS=45.2.1-r0
-NETWORKMANAGER=1.44.2-r1
-NETWORKMANAGER_WIFI=1.44.2-r1
+NETWORKMANAGER=1.46.0-r0
+NETWORKMANAGER_WIFI=1.46.0-r0
 POLKIT_COMMON=124-r0
 SHADOW_LOGIN=4.14.2-r0
 UDEV_INIT_SCRIPTS=35-r1
@@ -59,7 +59,7 @@ XORG_SERVER=21.1.11-r0
 KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 
 DELUGE_GTK=2.1.1-r8
-KEEPASSXC=2.7.6-r2
+KEEPASSXC=2.7.7-r0
 KLEOPATRA=23.08.4-r0
 METADATA_CLEANER=2.5.4
 PIDGIN=2.14.12-r3
@@ -245,6 +245,11 @@ build_metadata_cleaner:
 	cd build/metadata-cleaner && meson configure -Dprefix=$(shell pwd)/build/alpine -Ddatadir=usr/share builddir
 	cd build/metadata-cleaner && meson install -C builddir
 	chroot build/alpine /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/
+	for i in build/alpine/usr/share/dbus-1/services/fr.romainvigier.MetadataCleaner.service \
+		build/alpine/usr/share/application/fr.romainvigier.MetadataCleaner.desktop \
+		build/alpine/bin/metadata-cleaner; do \
+		sed -i -e 's/$(shell pwd | sed 's/\//\\\//g')\/build\/alpine//g' "$$i"; \
+	done
 
 # ISO
 
@@ -305,10 +310,6 @@ config_user_init:
 CONFIG_TARGETS += config_home
 config_home:
 	chroot build/alpine /bin/ash -c 'chown -R $$(id -u Kaba):$$(id -g Kaba) /home/Kaba'
-
-CONFIG_TARGETS += config_zz_replace_install_root
-config_zz_replace_install_root:
-	find build/alpine -type f -exec sed -i -e 's/$(shell pwd | sed 's/\//\\\//g')\/build\/alpine//g' {} \;
 
 clean:
 	rm -rf build
