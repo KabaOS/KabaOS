@@ -4,6 +4,10 @@ const std = @import("std");
 pub const allocator = std.heap.c_allocator;
 pub const libsam3 = @cImport(@cInclude("libsam3.h"));
 
+pub const std_options = .{
+    .log_level = .info,
+};
+
 pub fn main() !void {
     _ = try std.Thread.spawn(.{}, server.serve, .{.{ .share_type = .dir, .path = @constCast("/var") }});
     std.time.sleep(1000000000);
