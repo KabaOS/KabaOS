@@ -62,6 +62,7 @@ DELUGE_GTK=2.1.1-r8
 KEEPASSXC=2.7.7-r0
 KLEOPATRA=23.08.4-r0
 METADATA_CLEANER=2.5.4
+NHEKO=0.11.3-r8
 PIDGIN=2.14.12-r3
 
 .PHONY: build
@@ -101,7 +102,6 @@ build_alpine:
 		amd-ucode=$(AMD_UCODE) \
 		intel-ucode=$(INTEL_UCODE)" || true
 	chroot build/alpine /bin/ash -c "apk add \
-		age=$(AGE) \
 		agetty=$(AGETTY) \
 		chrony=$(CHRONY) \
 		curl=$(CURL) \
@@ -119,11 +119,8 @@ build_alpine:
 		i2pd=$(I2PD) \
 		inotify-tools=$(INOTIFY_TOOLS) \
 		iptables=$(IPTABLES) \
-		keepassxc=$(KEEPASSXC) \
-		kleopatra=$(KLEOPATRA) \
 		librewolf=$(LIBREWOLF) \
 		libsodium=$(LIBSODIUM) \
-		mat2=$(MAT2) \
 		mesa-dri-gallium=$(MESA_DRI_GALLIUM) \
 		nautilus=$(NAUTILUS) \
 		networkmanager-wifi=$(NETWORKMANAGER_WIFI) \
@@ -137,7 +134,12 @@ build_alpine:
 		xinit=$(XINIT) \
 		xorg-server=$(XORG_SERVER)" || true
 	chroot build/alpine /bin/ash -c "apk add \
+		age=$(AGE) \
 		deluge-gtk=$(DELUGE_GTK) \
+		keepassxc=$(KEEPASSXC) \
+		kleopatra=$(KLEOPATRA) \
+		mat2=$(MAT2) \
+		nheko=$(NHEKO) \
 		pidgin=$(PIDGIN)" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
