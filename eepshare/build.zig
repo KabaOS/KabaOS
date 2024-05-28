@@ -6,15 +6,17 @@ pub fn build(b: *std.Build) void {
 
     const exe = b.addExecutable(.{
         .name = "eepshare",
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
         .strip = optimize == std.builtin.Mode.ReleaseFast,
     });
 
     exe.linkLibC();
-    exe.addCSourceFile(.{ .file = .{ .path = "libsam3/src/libsam3/libsam3.c" }, .flags = &.{} });
-    exe.addIncludePath(.{ .path = "libsam3/src/libsam3" });
+    exe.addCSourceFile(.{ .file = b.path("libsam3/src/libsam3/libsam3.c"), .flags = &.{} });
+    exe.addIncludePath(b.path("libsam3/src/libsam3"));
+    exe.linkSystemLibrary("gtk4");
+    exe.linkSystemLibrary("libadwaita-1");
 
     b.installArtifact(exe);
 

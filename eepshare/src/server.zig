@@ -1,31 +1,60 @@
 const allocator = @import("main.zig").allocator;
 const base32 = @import("base32.zig");
 const http = @import("http.zig");
-const libsam3 = @import("main.zig").libsam3;
+const c = @import("main.zig").c;
 const std = @import("std");
+const gui = @import("gui.zig");
+
+pub const share_type = enum { file, dir };
 
 pub const options = struct {
-    share_type: enum { file, dir },
+    share_type: share_type,
     path: []u8,
 };
 
 pub const read_length = 2 * 1024;
 
-pub fn serve(option: options) !void {
-    var ses: libsam3.Sam3Session = undefined;
+pub fn serve(option: options, item: *c.GtkWidget, stop: *bool) !void {
+    defer allocator.destroy(stop);
+
+    var ses: c.Sam3Session = undefined;
     std.log.info("creating session for {s}", .{option.path});
-    if (libsam3.sam3CreateSilentSession(@ptrCast(&ses), @ptrCast(libsam3.SAM3_HOST_DEFAULT), libsam3.SAM3_PORT_DEFAULT, @ptrCast(libsam3.SAM3_DESTINATION_TRANSIENT), libsam3.SAM3_SESSION_STREAM, 4, null) < 0) {
+
+    if (c.sam3CreateSilentSession(
+        @ptrCast(&ses),
+        @ptrCast(c.SAM3_HOST_DEFAULT),
+        c.SAM3_PORT_DEFAULT,
+        @ptrCast(c.SAM3_DESTINATION_TRANSIENT),
+        c.SAM3_SESSION_STREAM,
+        4,
+        null,
+    ) < 0) {
         @panic("FATAL: can't create session");
     }
-    defer _ = libsam3.sam3CloseSession(@ptrCast(&ses));
+    defer _ = c.sam3CloseSession(@ptrCast(&ses));
+    defer std.log.info("Stopped listening for {s}", .{option.path});
 
     const key = try key_b32_to_serve(ses.pubkey);
     std.log.info("listening on {s}.b32.i2p for {s}", .{ key, option.path });
 
-    while (true) {
-        const _conn: *libsam3.Sam3Connection = libsam3.sam3StreamAccept(@ptrCast(&ses)) orelse @panic("Failed to get a connector");
+    const url = try allocator.alloc(u8, 61);
+    defer allocator.free(url);
 
-        _ = try std.Thread.spawn(.{}, http.handle, .{ _conn, option, key });
+    std.mem.copyForwards(u8, url, &key);
+    std.mem.copyForwards(u8, url[52..], ".b32.i2p");
+    url[60] = 0;
+
+    if (!stop.*) gui.loading_update(item, url);
+
+    while (!stop.*) {
+        const conn: *c.Sam3Connection = c.sam3StreamAccept(@ptrCast(&ses)) orelse @panic("Failed to get a connector");
+
+        if (stop.*) {
+            _ = c.sam3CloseConnection(conn);
+            return;
+        }
+
+        _ = std.Thread.spawn(.{}, http.handle, .{ conn, option, key }) catch undefined;
     }
 }
 

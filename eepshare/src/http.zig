@@ -1,5 +1,5 @@
 const allocator = @import("main.zig").allocator;
-const libsam3 = @import("main.zig").libsam3;
+const c = @import("main.zig").c;
 const server = @import("server.zig");
 const std = @import("std");
 
@@ -31,18 +31,14 @@ fn parse(data: *[server.read_length]u8) parse_error!request {
 
     const _method = std.meta.stringToEnum(method, first_line.next() orelse return error.NotAValidMethod) orelse return error.NotAValidMethod;
 
-    const _path = first_line.next() orelse return error.NoPath;
+    const path = first_line.next() orelse return error.NoPath;
 
-    const unescaped = std.Uri.unescapeString(allocator, _path) catch return error.FailedUnescape;
+    const unescaped = std.Uri.percentDecodeInPlace(@constCast(path));
 
     return request{ .method = _method, .path = unescaped };
 }
 
-fn parse_deinit(_request: request) void {
-    allocator.free(_request.path);
-}
-
-fn make_response(conn: *libsam3.Sam3Connection, code: u16, codestr: []const u8, headers: []const header, body: []u8) void {
+fn make_response(conn: *c.Sam3Connection, code: u16, codestr: []const u8, headers: []const header, body: []u8) void {
     var header_length: usize = 0;
     for (0..headers.len) |i| {
         header_length += 2 + headers[i][0].len + 2 + headers[i][1].len;
@@ -67,30 +63,34 @@ fn make_response(conn: *libsam3.Sam3Connection, code: u16, codestr: []const u8, 
         index += headers[i][1].len;
     }
 
-    const response = std.fmt.allocPrint(allocator, "HTTP/1.1 {d} {s}{s}\r\n\r\n{s}", .{ code, codestr, headersstr, body }) catch @panic("Failed to allocate room for header response");
+    const response = std.fmt.allocPrint(
+        allocator,
+        "HTTP/1.1 {d} {s}{s}\r\n\r\n{s}",
+        .{ code, codestr, headersstr, body },
+    ) catch @panic("Failed to allocate room for header response");
     defer allocator.free(response);
 
     send(conn, response);
 }
 
-pub fn send(conn: *libsam3.Sam3Connection, data: []u8) void {
-    if (libsam3.sam3tcpSend(conn.fd, @ptrCast(data), data.len) < 0) {
+pub fn send(conn: *c.Sam3Connection, data: []u8) void {
+    if (c.sam3tcpSend(conn.fd, @ptrCast(data), data.len) < 0) {
         std.log.err("Cant send to the user", .{});
     }
 }
 
-pub fn handle(conn: *libsam3.Sam3Connection, option: server.options, key: [52]u8) !void {
-    defer _ = libsam3.sam3tcpDisconnect(conn.fd);
+pub fn handle(conn: *c.Sam3Connection, option: server.options, key: [52]u8) !void {
+    defer _ = c.sam3CloseConnection(conn);
+
     errdefer make_response(conn, 500, "Internal Server Error", &[_]header{}, "");
 
     var cmd: [server.read_length]u8 = undefined;
 
-    if (libsam3.sam3tcpReceiveEx(conn.fd, &cmd, cmd.len, 1) < 0) {
+    if (c.sam3tcpReceiveEx(conn.fd, &cmd, cmd.len, 1) < 0) {
         std.log.err("Cant read from the user", .{});
     }
 
     const parsed = parse(&cmd) catch return make_response(conn, 400, "Bad Request", &[_]header{}, "");
-    defer parse_deinit(parsed);
 
     std.log.info("Request {s}.b32.i2p - {s} {s}", .{ key, @tagName(parsed.method), parsed.path });
 
@@ -149,7 +149,16 @@ pub fn handle(conn: *libsam3.Sam3Connection, option: server.options, key: [52]u8
         const size_str = try size_int_from_handle(html.items.len);
         defer allocator.free(size_str);
 
-        make_response(conn, 200, "OK", &[_]header{ .{ "Content-Type", "text/html" }, .{ "Content-Length", size_str } }, html.items);
+        make_response(
+            conn,
+            200,
+            "OK",
+            &[_]header{
+                .{ "Content-Type", "text/html" },
+                .{ "Content-Length", size_str },
+            },
+            html.items,
+        );
     } else {
         var buffered: [2 ^ 15]u8 = undefined;
 
@@ -170,7 +179,17 @@ pub fn handle(conn: *libsam3.Sam3Connection, option: server.options, key: [52]u8
 
         while (try file.read(&buffered) > 0) {
             if (!made_header) {
-                make_response(conn, 200, "OK", &[_]header{ .{ "Content-Type", "application/octet-stream" }, .{ "Content-Length", size_str }, .{ "Content-Disposition", content_disposition } }, "");
+                make_response(
+                    conn,
+                    200,
+                    "OK",
+                    &[_]header{
+                        .{ "Content-Type", "application/octet-stream" },
+                        .{ "Content-Length", size_str },
+                        .{ "Content-Disposition", content_disposition },
+                    },
+                    "",
+                );
                 made_header = true;
             }
 
