@@ -12,8 +12,8 @@ export JOBS=$(shell nproc)
 ALPINE=3.20.0
 ALPINE_MINI=3.20
 
-KERNEL=6.6.32
-LINUX_HARDENED=6.6.32-hardened1
+KERNEL=6.9.3
+LINUX_HARDENED=v6.9.3-hardened1
 
 KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 METADATA_CLEANER=2.5.5
@@ -59,8 +59,8 @@ build_alpine:
 		chrony \
 		curl \
 		dbus-x11 \
-		dnscrypt-proxy-openrc \
 		dnscrypt-proxy \
+		dnscrypt-proxy-openrc \
 		dnsmasq \
 		eudev \
 		gcompat \
@@ -76,15 +76,15 @@ build_alpine:
 		libsodium \
 		mesa-dri-gallium \
 		nautilus \
-		networkmanager-wifi \
 		networkmanager \
+		networkmanager-wifi \
+		openrc \
 		polkit-common \
 		shadow-login \
-		udev-init-scripts-openrc \
 		udev-init-scripts \
+		udev-init-scripts-openrc \
 		wpa_supplicant \
 		xf86-input-libinput \
-		xinit \
 		xorg-server" || true
 	chroot build/alpine /bin/ash -c "apk add \
 		age \
@@ -103,9 +103,8 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "touch /etc/fstab" || true
 	chroot build/alpine /bin/ash -c "mkdir -p /run/openrc" || true
 	chroot build/alpine /bin/ash -c "touch /run/openrc/softlevel" || true
-	chroot build/alpine /bin/ash -c "rc-update add openrc-settingsd boot" || true
-	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
 	chroot build/alpine /bin/ash -c "rc-update add elogind" || true
+	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnsmasq" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnscrypt-proxy" || true
 	chroot build/alpine /bin/ash -c "rc-update add chronyd" || true
@@ -122,7 +121,7 @@ finish_alpine:
 
 # WHEREACE
 download_whence:
-	curl "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/WHENCE?h=$$(echo "$(LINUX_FIRMWARE)" | cut -f1 -d'-')" -o build/WHENCE
+	curl "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/WHENCE" -o build/WHENCE
 
 # KERNEL
 
@@ -202,7 +201,7 @@ build_metadata_cleaner:
 	cd build/metadata-cleaner && meson install -C builddir
 	chroot build/alpine /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/
 	for i in build/alpine/usr/share/dbus-1/services/fr.romainvigier.MetadataCleaner.service \
-		build/alpine/usr/share/application/fr.romainvigier.MetadataCleaner.desktop \
+		build/alpine/usr/share/applications/fr.romainvigier.MetadataCleaner.desktop \
 		build/alpine/bin/metadata-cleaner; do \
 		sed -i -e 's/$(shell pwd | sed 's/\//\\\//g')\/build\/alpine//g' "$$i"; \
 	done
@@ -228,12 +227,6 @@ config_default:
 CONFIG_TARGETS += config_chrony
 config_chrony:
 	mkdir -p build/alpine/var/run/chrony
-
-CONFIG_TARGETS += config_dbus
-config_dbus:
-	mkdir -p build/alpine/run/dbus
-	mkdir -p build/alpine/var/run/dbus
-	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
 
 CONFIG_TARGETS += config_firmware
 config_firmware:
