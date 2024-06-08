@@ -62,11 +62,9 @@ build_alpine:
 		dnscrypt-proxy \
 		dnscrypt-proxy-openrc \
 		dnsmasq \
+		elogind \
 		eudev \
 		gcompat \
-		gdm \
-		gnome-console \
-		gnome-text-editor \
 		gnupg-scdaemon \
 		hardened-malloc \
 		i2pd \
@@ -80,11 +78,15 @@ build_alpine:
 		networkmanager-wifi \
 		openrc \
 		polkit-common \
+		shadow \
 		shadow-login \
 		udev-init-scripts \
 		udev-init-scripts-openrc \
 		wpa_supplicant \
 		xf86-input-libinput \
+		xfce4 \
+		xfce4-terminal \
+		xinit \
 		xorg-server" || true
 	chroot build/alpine /bin/ash -c "apk add \
 		age \
@@ -223,6 +225,12 @@ build_iso:
 CONFIG_TARGETS += config_default
 config_default:
 	cp -r config/mnt/* build/alpine
+
+CONFIG_TARGETS += config_dbus
+config_dbus:
+	mkdir -p build/alpine/run/dbus
+	mkdir -p build/alpine/var/run/dbus
+	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
 
 CONFIG_TARGETS += config_chrony
 config_chrony:
