@@ -171,7 +171,7 @@ download_welcome:
 	cd build && git clone https://github.com/KabaOS/welcome && cd welcome && git reset --hard "$(WELCOME)" && git submodule update --init --recursive
 
 build_welcome:
-	cd build/welcome && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	cd build/welcome && $(ZIGCC) build -Doptimize=ReleaseSmall # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/welcome/zig-out/bin/welcome
 	mv build/welcome/zig-out/bin/welcome build/alpine/bin/
 
@@ -181,7 +181,7 @@ download_eepshare:
 	cd build && git clone https://github.com/KabaOS/eepshare && cd eepshare && git reset --hard "$(EEPSHARE)" && git submodule update --init --recursive
 
 build_eepshare:
-	cd build/eepshare && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	cd build/eepshare && $(ZIGCC) build -Doptimize=ReleaseSmall # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/eepshare/zig-out/bin/eepshare
 	mv build/eepshare/zig-out/bin/eepshare build/alpine/bin/
 
