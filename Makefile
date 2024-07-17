@@ -15,14 +15,16 @@ ALPINE_MINI=3.20
 KERNEL=6.9.3
 LINUX_HARDENED=v6.9.3-hardened1
 
+EEPSHARE=731d8cb62393bbfc94c813479e445824f51bf51f
 KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 METADATA_CLEANER=2.5.5
+WELCOME=347f38de225056fe95348fb4091a24bddfb6212b
 
 .PHONY: build
 
 all: download build
 
-download: download_alpine download_kernel download_whence download_kloak download_metadata_cleaner
+download: download_alpine download_kernel download_whence download_welcome download_eepshare download_kloak download_metadata_cleaner
 
 build: create_img build_kernel build_alpine build_initramfs build_welcome build_eepshare build_kloak build_metadata_cleaner config finish_alpine finish_initramfs build_iso
 
@@ -165,25 +167,28 @@ finish_initramfs:
 
 # WELCOME
 
-build_welcome:
-	cd welcome && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
-	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 welcome/zig-out/bin/welcome
-	mv welcome/zig-out/bin/welcome build/alpine/bin/
+download_welcome:
+	cd build && git clone https://github.com/KabaOS/welcome && cd welcome && git reset --hard "$(WELCOME)" && git submodule update --init --recursive
 
-# WELCOME
+build_welcome:
+	cd build/welcome && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/welcome/zig-out/bin/welcome
+	mv build/welcome/zig-out/bin/welcome build/alpine/bin/
+
+# EEPSHARE
+
+download_eepshare:
+	cd build && git clone https://github.com/KabaOS/eepshare && cd eepshare && git reset --hard "$(EEPSHARE)" && git submodule update --init --recursive
 
 build_eepshare:
-	cd eepshare && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
-	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 eepshare/zig-out/bin/eepshare
-	mv eepshare/zig-out/bin/eepshare build/alpine/bin/
+	cd build/eepshare && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/eepshare/zig-out/bin/eepshare
+	mv build/eepshare/zig-out/bin/eepshare build/alpine/bin/
 
 # KLOAK
 
 download_kloak:
-	curl -L "https://github.com/vmonaco/kloak/archive/$(KLOAK).tar.gz" -o kloak.tar.gz
-	tar -xzf kloak.tar.gz
-	mv kloak-$(KLOAK) build/kloak
-	rm kloak.tar.gz
+	cd build && git clone https://github.com/vmonaco/kloak && cd kloak && git reset --hard "$(KLOAK)" && git submodule update --init --recursive
 
 build_kloak:
 	cd build/kloak && CFLAGS="-Wl,-rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" make kloak
