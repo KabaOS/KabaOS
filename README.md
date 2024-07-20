@@ -1,5 +1,5 @@
 # KabaOS
-An I2P based OS for security
+An I2P based OS made for security
 
 KabaOS is a live operating system based off of Alpine Linux that aims to help
 users stay anonymous online. All network traffic that is sent out of your
