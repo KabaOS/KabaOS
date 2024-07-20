@@ -17,7 +17,7 @@ LINUX_HARDENED=v6.9.3-hardened1
 
 EEPSHARE=731d8cb62393bbfc94c813479e445824f51bf51f
 KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
-METADATA_CLEANER=2.5.5
+METADATA_CLEANER=2.5.6
 WELCOME=347f38de225056fe95348fb4091a24bddfb6212b
 
 .PHONY: build
@@ -50,7 +50,7 @@ build_alpine:
 	mkdir -p "build/alpine/dev"
 	mkdir -p "build/alpine/sys"
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
-	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community\nhttps://dl-cdn.alpinelinux.org/alpine/edge/testing" > build/alpine/etc/apk/repositories
+	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community" > build/alpine/etc/apk/repositories
 	chroot build/alpine /bin/ash -c "apk update" || true
 	chroot build/alpine /bin/ash -c "apk upgrade" || true
 	chroot build/alpine /bin/ash -c "apk add \
@@ -68,11 +68,9 @@ build_alpine:
 		eudev \
 		gcompat \
 		gnupg-scdaemon \
-		hardened-malloc \
 		i2pd \
 		inotify-tools \
 		iptables \
-		librewolf \
 		libsodium \
 		mesa-dri-gallium \
 		nautilus \
@@ -90,6 +88,10 @@ build_alpine:
 		xfce4-terminal \
 		xinit \
 		xorg-server" || true
+	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
+		hardened-malloc" || true
+	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
+		librewolf" || true
 	chroot build/alpine /bin/ash -c "apk add \
 		age \
 		deluge-gtk \
@@ -171,7 +173,7 @@ download_welcome:
 	cd build && git clone https://github.com/KabaOS/welcome && cd welcome && git reset --hard "$(WELCOME)" && git submodule update --init --recursive
 
 build_welcome:
-	cd build/welcome && $(ZIGCC) build -Doptimize=ReleaseSmall # Hopefully musl and hardened malloc will save us if anything goes wrong
+	cd build/welcome && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/welcome/zig-out/bin/welcome
 	mv build/welcome/zig-out/bin/welcome build/alpine/bin/
 
@@ -181,7 +183,7 @@ download_eepshare:
 	cd build && git clone https://github.com/KabaOS/eepshare && cd eepshare && git reset --hard "$(EEPSHARE)" && git submodule update --init --recursive
 
 build_eepshare:
-	cd build/eepshare && $(ZIGCC) build -Doptimize=ReleaseSmall # Hopefully musl and hardened malloc will save us if anything goes wrong
+	cd build/eepshare && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
 	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/eepshare/zig-out/bin/eepshare
 	mv build/eepshare/zig-out/bin/eepshare build/alpine/bin/
 
@@ -248,6 +250,7 @@ config_firmware:
 CONFIG_TARGETS += config_i2pd
 config_i2pd:
 	mkdir -p build/alpine/var/lib/i2pd
+	chroot build/alpine /bin/ash -c 'chown -R i2pd /var/lib/i2pd'
 
 CONFIG_TARGETS += config_init
 config_init:
