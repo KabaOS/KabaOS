@@ -89,7 +89,8 @@ build_alpine:
 		xinit \
 		xorg-server" || true
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
-		hardened-malloc" || true
+		hardened-malloc \
+		mat2" || true
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
 		librewolf" || true
 	chroot build/alpine /bin/ash -c "apk add \
@@ -97,7 +98,6 @@ build_alpine:
 		deluge-gtk \
 		keepassxc \
 		kleopatra \
-		mat2 \
 		nheko \
 		pidgin" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
