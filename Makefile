@@ -286,7 +286,6 @@ config_osinfo:
 CONFIG_TARGETS += config_ucode
 config_ucode:
 	mv build/alpine/boot/{amd,intel}-ucode.img build/mnt/boot || true
-	zstd -v -f -T$(JOBS) $(ZSTD_ARGS) --progress --rm build/mnt/boot/{amd,intel}-ucode.img || true
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
