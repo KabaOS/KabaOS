@@ -229,6 +229,10 @@ build_iso:
 
 # CONFIG
 
+CONFIG_TARGETS += config_apk
+config_apk:
+	rm -rf build/alpine/etc/apk
+
 CONFIG_TARGETS += config_default
 config_default:
 	cp -r config/mnt/* build/alpine
@@ -274,6 +278,10 @@ config_librewolf:
 	echo "X-XFCE-Commands=librewolf" >> "$$OUTPUT" && \
 	echo "X-XFCE-CommandsWithParameter=librewolf \"%s\"" >> "$$OUTPUT" && \
 	sed -n -e 's/^Type=.*/Type=X-XFCE-Helper/' -e '/^Exec[=[]/,$$p' "$$INPUT" >> "$$OUTPUT"
+
+CONFIG_TARGETS += config_osinfo
+config_osinfo:
+	rm -rf build/alpine/usr/share/osinfo/
 
 CONFIG_TARGETS += config_ucode
 config_ucode:
