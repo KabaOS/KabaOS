@@ -50,7 +50,7 @@ build_alpine:
 	mkdir -p "build/alpine/dev"
 	mkdir -p "build/alpine/sys"
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
-	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community" > build/alpine/etc/apk/repositories
+	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community" > build/alpine/etc/apk/repositories || true
 	chroot build/alpine /bin/ash -c "apk update" || true
 	chroot build/alpine /bin/ash -c "apk upgrade" || true
 	chroot build/alpine /bin/ash -c "apk add \
