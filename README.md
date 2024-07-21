@@ -22,7 +22,7 @@ apk add bison curl desktop-file-utils elfutils-dev flex g++ gcc git glib-dev \
 You can download the repository with the following.
 
 ```
-git clone --recursive https://github.com/arthurmelton/KabaOS
+git https://github.com/arthurmelton/KabaOS
 ```
 
 If your linux repository does not have some way of installing zig master, use
