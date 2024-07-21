@@ -263,6 +263,18 @@ config_iptables:
 	chroot build/alpine /bin/ash -c 'sed -i "s/\$$DNSCRYPT_ID/$$(id -u dnscrypt)/" /root/iptables.rules'
 	chroot build/alpine /bin/ash -c 'sed -i "s/\$$CHRONY_ID/$$(id -u chrony)/" /root/iptables.rules'
 
+CONFIG_TARGETS += config_librewolf
+config_librewolf:
+	mkdir -p build/alpine/home/Kaba/.local/share/xfce4/helpers
+	# From https://cgit.freedesktop.org/xdg/xdg-utils/tree/scripts/xdg-settings.in#n526
+	export INPUT="build/alpine/usr/share/applications/librewolf.desktop" && \
+	export OUTPUT="build/alpine/home/Kaba/.local/share/xfce4/helpers/librewolf.desktop" && \
+	sed -e 's/^Type=.*/Type=X-XFCE-Helper/' -e '/^Exec[=[]/,$$d' "$$INPUT" > "$$OUTPUT" && \
+	echo "X-XFCE-Category=WebBrowser" >> "$$OUTPUT" && \
+	echo "X-XFCE-Commands=librewolf" >> "$$OUTPUT" && \
+	echo "X-XFCE-CommandsWithParameter=librewolf \"%s\"" >> "$$OUTPUT" && \
+	sed -n -e 's/^Type=.*/Type=X-XFCE-Helper/' -e '/^Exec[=[]/,$$p' "$$INPUT" >> "$$OUTPUT"
+
 CONFIG_TARGETS += config_ucode
 config_ucode:
 	mv build/alpine/boot/{amd,intel}-ucode.img build/mnt/boot || true
