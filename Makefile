@@ -18,7 +18,7 @@ LINUX_HARDENED=v6.6.41-hardened1
 EEPSHARE=731d8cb62393bbfc94c813479e445824f51bf51f
 KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
 METADATA_CLEANER=2.5.6
-WELCOME=3c758d7b897cc538526b519fc9e6789d1d512e0d
+WELCOME=1ff44a6bbdfdeacf3f3d981024f307b37f7eb6b1
 
 .PHONY: build
 
@@ -74,6 +74,7 @@ build_alpine:
 		libsodium \
 		mesa-dri-gallium \
 		nautilus \
+		network-manager-applet \
 		networkmanager \
 		networkmanager-wifi \
 		openrc \
@@ -241,7 +242,6 @@ CONFIG_TARGETS += config_dbus
 config_dbus:
 	mkdir -p build/alpine/run/dbus
 	mkdir -p build/alpine/var/run/dbus
-	chroot build/alpine /bin/ash -c "ln -sf /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket"
 
 CONFIG_TARGETS += config_chrony
 config_chrony:
