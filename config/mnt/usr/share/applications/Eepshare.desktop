@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Eepshare
+Exec=eepshare
+Type=Application
+Comment=Share files privately over i2p p2p
+Categories=GTK;Network;FileTransfer;
+Terminal=false
+StartupNotify=true
