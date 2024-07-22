@@ -155,8 +155,9 @@ build_initramfs:
 	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/squashfs,mnt/tmpfs,proc,root,sbin,sys}
 	install -D -m 644 /etc/resolv.conf build/initramfs/etc/resolv.conf
 	chroot build/initramfs /bin/ash -c "apk update" || true
+	# linux-firmware-other for iwlwifi
 	chroot build/initramfs /bin/ash -c "apk add \
-		linux-firmware-other # because iwlwifi is in here \
+		linux-firmware-other \
 		wireless-regdb \
 		zstd" || true
 	chroot build/initramfs /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
@@ -251,7 +252,8 @@ config_chrony:
 CONFIG_TARGETS += config_firmware
 config_firmware:
 	mkdir build/initramfs/lib/firmware2
-	cp -r build/initramfs/lib/firmware/{iwlwifi-*,regulatory.db*} build/initramfs/lib/firmware2
+	cp -r build/initramfs/lib/firmware/iwlwifi-* build/initramfs/lib/firmware2
+	cp -r build/initramfs/lib/firmware/regulatory.db* build/initramfs/lib/firmware2
 	rm -r build/initramfs/lib/firmware
 	mv build/initramfs/lib/firmware2 build/initramfs/lib/firmware
 	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep '^File: ' | cut -c7- | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) $(ZSTD_ARGS) --progress --rm "{}" || true
