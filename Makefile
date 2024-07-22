@@ -250,7 +250,7 @@ config_chrony:
 
 CONFIG_TARGETS += config_firmware
 config_firmware:
-	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep -Po '(?<=File: ).*' | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) $(ZSTD_ARGS) --progress --rm "{}" || true
+	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep '^File: ' | cut -c7- | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) $(ZSTD_ARGS) --progress --rm "{}" || true
 
 CONFIG_TARGETS += config_i2pd
 config_i2pd:
