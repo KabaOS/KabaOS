@@ -9,7 +9,7 @@ export JOBS=$(shell nproc)
 
 # VERSIONS
 
-ALPINE=3.20.1
+ALPINE=3.20.2
 ALPINE_MINI=3.20
 
 KERNEL=6.6.41
