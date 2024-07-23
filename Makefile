@@ -152,7 +152,11 @@ build_kernel:
 # INITRAMFS
 
 build_initramfs:
-	mkdir --parents build/initramfs/{bin,dev,etc,lib,lib64,mnt/iso,mnt/squashfs,mnt/tmpfs,proc,root,sbin,sys}
+	mkdir --parents build/initramfs/bin build/initramfs/dev \
+		build/initramfs/etc build/initramfs/lib build/initramfs/lib64 \
+		build/initramfs/mnt/iso build/initramfs/mnt/squashfs \
+		build/initramfs/mnt/tmpfs build/initramfs/proc build/initramfs/root \
+		build/initramfs/sbin build/initramfs/sys
 	install -D -m 644 /etc/resolv.conf build/initramfs/etc/resolv.conf
 	chroot build/initramfs /bin/ash -c "apk update" || true
 	# linux-firmware-other for iwlwifi
@@ -292,7 +296,8 @@ config_osinfo:
 
 CONFIG_TARGETS += config_ucode
 config_ucode:
-	mv build/alpine/boot/{amd,intel}-ucode.img build/mnt/boot || true
+	mv build/alpine/boot/amd-ucode.img build/mnt/boot || true
+	mv build/alpine/boot/intel-ucode.img build/mnt/boot || true
 
 CONFIG_TARGETS += config_user_init
 config_user_init:
