@@ -14,7 +14,7 @@ running the following:
 
 ```sh
 apk add bison curl desktop-file-utils elfutils-dev flex g++ gcc git glib-dev \
-    gmp-dev grub grub2-efi gtk4.0-dev itstool libadwaita-dev libevdev-dev \
+    gmp-dev grub grub-efi gtk4.0-dev itstool libadwaita-dev libevdev-dev \
     libsodium-dev linux-headers make meson mpc1-dev mpfr-dev mtools musl-dev \
     openssl-dev patch patchelf perl squashfs-tools xfconf-dev xorriso
 ```
