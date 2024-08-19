@@ -23,7 +23,8 @@ apk add bison curl desktop-file-utils elfutils-dev flex g++ gcc git glib-dev \
 You can download the repository with the following.
 
 ```
-git https://github.com/arthurmelton/KabaOS
+git clone https://github.com/arthurmelton/KabaOS
+cd KabaOS
 ```
 
 If your linux repository does not have some way of installing zig master, use
@@ -48,7 +49,7 @@ sudo make build
 ```
 
 If you want to download all the code and then build it, you can run the
-following.
+following instead of doing download then build.
 
 ```
 sudo make all
