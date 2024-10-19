@@ -15,18 +15,13 @@ ALPINE_MINI=3.20
 KERNEL=6.6.47
 LINUX_HARDENED=v6.6.47-hardened1
 
-EEPSHARE=731d8cb62393bbfc94c813479e445824f51bf51f
-KLOAK=9cbdf4484da19eb09653356e59ce42c37cecb523
-METADATA_CLEANER=2.5.6
-WELCOME=433d749d7b79a970f8214f8484a910df5d33fdc2
-
 .PHONY: build
 
 all: download build
 
-download: download_alpine download_kernel download_whence download_welcome download_eepshare download_kloak download_metadata_cleaner
+download: download_alpine download_kernel download_whence
 
-build: create_img build_kernel build_alpine build_initramfs build_welcome build_eepshare build_kloak build_metadata_cleaner config finish_alpine finish_initramfs build_iso
+build: create_img build_kernel build_alpine build_initramfs config finish_alpine finish_initramfs build_iso
 
 .SECONDEXPANSION:
 config: $$(CONFIG_TARGETS)
@@ -47,12 +42,26 @@ download_alpine:
 build_alpine:
 	mkdir -p build/alpine/
 	mkdir -p build/alpine/proc
-	mkdir -p "build/alpine/dev"
-	mkdir -p "build/alpine/sys"
+	mkdir -p build/alpine/dev
+	mkdir -p build/alpine/sys
+	mount --types proc /proc build/alpine/proc
 	install -D -m 644 /etc/resolv.conf build/alpine/etc/resolv.conf
 	echo -e "https://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/main\nhttps://dl-cdn.alpinelinux.org/alpine/v$(ALPINE_MINI)/community" > build/alpine/etc/apk/repositories || true
 	chroot build/alpine /bin/ash -c "apk update" || true
 	chroot build/alpine /bin/ash -c "apk upgrade" || true
+	chroot build/alpine /bin/ash -c "apk add alpine-sdk" || true
+	cp -r pkgs/main/ build/alpine/aports
+	chroot build/alpine /bin/ash -c "echo '' | abuild-keygen -a" || true
+	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
+		mat2" || true
+	chroot build/alpine /bin/ash -c "cd /aports; \
+		for i in *; do \
+			cd \"\$$i\" && abuild -F -r; cd ..; \
+			apk add --allow-untrusted ~/packages/aports/*/\"\$$i\"-*.apk; \
+		done" || true
+	chroot build/alpine /bin/ash -c "apk del aa-zig-9999" || true
+	rm -rf build/alpine/aports
+	rm -rf build/alpine/root/packages
 	chroot build/alpine /bin/ash -c "apk add \
 		amd-ucode \
 		intel-ucode" || true
@@ -66,12 +75,10 @@ build_alpine:
 		dnsmasq \
 		elogind \
 		eudev \
-		gcompat \
 		gnupg-scdaemon \
 		i2pd \
 		inotify-tools \
 		iptables \
-		libsodium \
 		mesa-dri-gallium \
 		nautilus \
 		network-manager-applet \
@@ -90,8 +97,7 @@ build_alpine:
 		xinit \
 		xorg-server" || true
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
-		hardened-malloc \
-		mat2" || true
+		hardened-malloc" || true
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
 		librewolf" || true
 	chroot build/alpine /bin/ash -c "apk add \
@@ -101,7 +107,7 @@ build_alpine:
 		kleopatra \
 		nheko \
 		pidgin" || true
-	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
+	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools alpine-sdk" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-trigger" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev-settle" || true
@@ -121,13 +127,15 @@ build_alpine:
 	chroot build/alpine /bin/ash -c 'chmod 600 "/root"' || true
 	chroot build/alpine /bin/ash -c 'chmod -R 600 "/root"' || true
 	rm -rf build/alpine/etc/resolv.conf
+	umount build/alpine/proc
 
 finish_alpine:
 	mkdir -p build/alpine/dev
-	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
+	chroot build/alpine /bin/ash -c "rm -rf /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history /root/.abuild" || true
 	mksquashfs build/alpine build/mnt/alpine.zst.squashfs -noappend -comp zstd $(shell if [ "$(FAST)" != "y" ]; then echo "-Xcompression-level 22"; fi)
 
 # WHEREACE
+
 download_whence:
 	curl "https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/WHENCE" -o build/WHENCE
 
@@ -173,54 +181,6 @@ build_initramfs:
 
 finish_initramfs:
 	cd build/initramfs && find . -print0 | cpio --null --create --verbose --format=newc | zstd -v -T$(JOBS) $(ZSTD_ARGS) --progress > ../mnt/boot/initramfs.cpio.zst
-
-# WELCOME
-
-download_welcome:
-	cd build && git clone https://github.com/KabaOS/welcome && cd welcome && git reset --hard "$(WELCOME)" && git submodule update --init --recursive
-
-build_welcome:
-	cd build/welcome && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
-	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/welcome/zig-out/bin/welcome
-	mv build/welcome/zig-out/bin/welcome build/alpine/bin/
-
-# EEPSHARE
-
-download_eepshare:
-	cd build && git clone https://github.com/KabaOS/eepshare && cd eepshare && git reset --hard "$(EEPSHARE)" && git submodule update --init --recursive
-
-build_eepshare:
-	cd build/eepshare && $(ZIGCC) build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
-	patchelf --set-interpreter /lib/ld-musl-x86_64.so.1 build/eepshare/zig-out/bin/eepshare
-	mv build/eepshare/zig-out/bin/eepshare build/alpine/bin/
-
-# KLOAK
-
-download_kloak:
-	cd build && git clone https://github.com/vmonaco/kloak && cd kloak && git reset --hard "$(KLOAK)" && git submodule update --init --recursive
-
-build_kloak:
-	cd build/kloak && CFLAGS="-Wl,-rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" make kloak
-	mv build/kloak/kloak build/alpine/sbin
-
-# METADATA CLEANER
-
-download_metadata_cleaner:
-	curl -L "https://gitlab.com/rmnvgr/metadata-cleaner/-/archive/v$(METADATA_CLEANER)/metadata-cleaner-v$(METADATA_CLEANER).tar.gz" -o metadata-cleaner.tar.gz
-	tar -xzf metadata-cleaner.tar.gz
-	mv metadata-cleaner-v$(METADATA_CLEANER) build/metadata-cleaner
-	rm metadata-cleaner.tar.gz
-
-build_metadata_cleaner:
-	cd build/metadata-cleaner && meson builddir
-	cd build/metadata-cleaner && meson configure -Dprefix=$(shell pwd)/build/alpine -Ddatadir=usr/share builddir
-	cd build/metadata-cleaner && meson install -C builddir
-	chroot build/alpine /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/
-	for i in build/alpine/usr/share/dbus-1/services/fr.romainvigier.MetadataCleaner.service \
-		build/alpine/usr/share/applications/fr.romainvigier.MetadataCleaner.desktop \
-		build/alpine/bin/metadata-cleaner; do \
-		sed -i -e 's/$(shell pwd | sed 's/\//\\\//g')\/build\/alpine//g' "$$i"; \
-	done
 
 # ISO
 

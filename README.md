@@ -13,11 +13,9 @@ If you are on alpine, you can install all the necessary building programs by
 running the following:
 
 ```sh
-apk add bison curl desktop-file-utils elfutils-dev flex g++ gcc git glib-dev \
-    gmp-dev grub grub-efi grub-bios gtk4.0-dev itstool libadwaita-dev \
-    libevdev-dev libsodium-dev linux-headers make meson mpc1-dev mpfr-dev \
-    mtools musl-dev openssl-dev patch patchelf perl squashfs-tools \
-    xfconf-dev xorriso
+apk add bison curl flex g++ gcc gmp-dev grub grub-efi grub-bios linux-headers \
+    make mpc1-dev mpfr-dev mtools musl-dev openssl-dev patch perl \
+    squashfs-tools xorriso \
 ```
 
 You can download the repository with the following.
@@ -25,13 +23,6 @@ You can download the repository with the following.
 ```
 git clone https://github.com/arthurmelton/KabaOS
 cd KabaOS
-```
-
-If your linux repository does not have some way of installing zig master, use
-this (and read the output):
-
-```sh
-./install_zig.sh
 ```
 
 Once you have the source code, you can run the following to download all of the

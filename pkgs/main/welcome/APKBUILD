@@ -1,0 +1,31 @@
+# Maintainer: Arthur Melton <admin@kabaos.org>
+pkgname=welcome
+pkgver=9999
+pkgrel=0
+pkgdesc="Welcome screen for KabaOS"
+url="https://github.com/KabaOS/Welcome"
+arch="all"
+license="GPL-2.0"
+depends="gtk4.0 glib libadwaita xfconf"
+makedepends="aa-zig-9999 gtk4.0-dev glib-dev libadwaita-dev xfconf-dev"
+options="!check" # no test suite
+commit="433d749d7b79a970f8214f8484a910df5d33fdc2"
+source="https://github.com/KabaOS/Welcome/archive/$commit.tar.gz
+	"
+
+prepare() {
+	default_prepare
+    cd Welcome-$commit
+}
+
+build() {
+    zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+}
+
+package() {
+    install -Dm755 "$srcdir"/Welcome-"$commit"/zig-out/bin/welcome -t "$pkgdir"/bin/
+}
+
+sha512sums="
+96214a45dacdf310cea435e1611cae35ba25e29bb3812a5441c121b31449cd472f63583278c69afcc5b3318f209ce6b66e8771dec4f727c526a4b544552c2f3c  433d749d7b79a970f8214f8484a910df5d33fdc2.tar.gz
+"

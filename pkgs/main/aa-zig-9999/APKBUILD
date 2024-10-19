@@ -1,0 +1,33 @@
+# Maintainer: Arthur Melton <admin@kabaos.org>
+pkgname=aa-zig-9999
+pkgver=9999
+pkgrel=0
+pkgdesc="Dev version of zig"
+url="https://github.com/ziglang/zig"
+arch="all"
+license="MIT"
+depends=""
+makedepends="curl tar xz"
+options="!check" # no test suite
+source="
+	"
+
+prepare() {
+	default_prepare
+}
+
+build() {
+    curl "$(curl "https://ziglang.org/download/index.json" | grep "linux-$(arch)" | head -n 1 | tr -d '"' | tr -d ',' | awk '{print $2}')" -o zig.tar.xz
+    tar -xf zig.tar.xz
+    rm zig.tar.xz
+    mv zig-* zig
+}
+
+package() {
+    install -Dm755 "$srcdir"/zig/zig -t "$pkgdir"/bin/
+    mkdir -p "$pkgdir"/lib
+    cp -r "$srcdir"/zig/lib "$pkgdir"/lib/zig
+}
+
+sha512sums="
+"

@@ -1,0 +1,36 @@
+# Maintainer: Arthur Melton <admin@kabaos.org>
+pkgname=eepshare
+pkgver=9999
+pkgrel=0
+pkgdesc="Share files and directories p2p over i2p"
+url="https://github.com/KabaOS/Eepshare"
+arch="all"
+license="GPL-2.0"
+depends="gtk4.0 libadwaita"
+makedepends="aa-zig-9999 gtk4.0-dev libadwaita-dev"
+options="!check" # no test suite
+commit="731d8cb62393bbfc94c813479e445824f51bf51f"
+libsam3_commit="ea52a3251d60906d67f9a1031a6ed7642753f94f"
+source="https://github.com/KabaOS/Eepshare/archive/$commit.tar.gz
+    https://github.com/i2p/libsam3/archive/$libsam3_commit.tar.gz
+	"
+
+prepare() {
+	default_prepare
+    cd Eepshare-$commit
+}
+
+build() {
+    rm -r libsam3
+    mv ../libsam3-$libsam3_commit ./libsam3
+    zig build -Doptimize=ReleaseFast # Hopefully musl and hardened malloc will save us if anything goes wrong
+}
+
+package() {
+    install -Dm755 "$srcdir"/Eepshare-"$commit"/zig-out/bin/eepshare -t "$pkgdir"/bin/
+}
+
+sha512sums="
+b281ff651d3b98310e09520adcd2e286cae657e4aa75f7bfb255807177bd2651c311fa61279d38218457c8f66dc31a3d6271468d6c11615ed224fc5448a61d65  731d8cb62393bbfc94c813479e445824f51bf51f.tar.gz
+a1236da29e0ff2ba91f707b76e13720edc15aa71444d7a5653a8a517caf68756b5a0b49d97914b48322c6fe46eb91ef1c072e6a84babda78f10ac7f57f231467  ea52a3251d60906d67f9a1031a6ed7642753f94f.tar.gz
+"

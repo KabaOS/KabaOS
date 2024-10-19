@@ -1,0 +1,31 @@
+# Maintainer: Arthur Melton <admin@kabaos.org>
+pkgname=kloak
+pkgver=9999
+pkgrel=0
+pkgdesc="Keystroke-level online anonymization kernel: obfuscates typing behavior at the device level."
+url="https://github.com/vmonaco/kloak"
+arch="all"
+license="BSD-3-Clause"
+depends="libsodium libevdev"
+makedepends="make pkgconf libsodium-dev libevdev-dev bsd-compat-headers"
+options="!check" # no test suite
+commit="9cbdf4484da19eb09653356e59ce42c37cecb523"
+source="https://github.com/vmonaco/kloak/archive/$commit.tar.gz
+	"
+
+prepare() {
+	default_prepare
+    cd kloak-$commit
+}
+
+build() {
+    CFLAGS="$CFLAGS -Wl,-rpath=../build/alpine/lib -Wl,--dynamic-linker=/lib/ld-musl-x86_64.so.1" make kloak
+}
+
+package() {
+    install -Dm755 "$srcdir"/kloak-"$commit"/kloak -t "$pkgdir"/sbin/
+}
+
+sha512sums="
+dcd4230d02a6b7eff4b6008852cb2464b793b9670c76fc96d14f70ea0b1fc29b852d758c7a50b79a19da400396c6cddabac952dcfab36d2bdb2fbd9654c07715  9cbdf4484da19eb09653356e59ce42c37cecb523.tar.gz
+"

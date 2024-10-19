@@ -1,0 +1,32 @@
+# Maintainer: Arthur Melton <admin@kabaos.org>
+pkgname=metadata-cleaner
+pkgver=2.5.6
+pkgrel=0
+pkgdesc="Python GTK application to view and clean metadata in files, using mat2"
+url="https://gitlab.com/rmnvgr/metadata-cleaner"
+arch="all"
+license="GPL-3.0-or-later"
+depends="glib mat2 gtk4.0 libadwaita python3"
+makedepends="meson glib-dev itstool appstream desktop-file-utils gtk-update-icon-cache"
+options="!check" # no test suite
+source="https://gitlab.com/rmnvgr/metadata-cleaner/-/archive/v$pkgver/metadata-cleaner-v$pkgver.tar.gz
+	"
+
+prepare() {
+	default_prepare
+    cd metadata-cleaner-v"$pkgver"
+}
+
+build() {
+    meson builddir
+}
+
+package() {
+    cd "$srcdir"/metadata-cleaner-v"$pkgver"
+	meson configure -Dprefix="$pkgdir" -Ddatadir=usr/share builddir
+	meson install -C builddir
+}
+
+sha512sums="
+1995d01b0df23e740aec8b5fbc18079f775e450b15a5cab9ec149ab93933f6c3e260f67680778c720e839843ddd2a0cf06059cbfb90354c11837172aceb43f56  metadata-cleaner-v2.5.6.tar.gz
+"
