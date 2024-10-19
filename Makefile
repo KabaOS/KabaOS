@@ -12,8 +12,8 @@ export JOBS=$(shell nproc)
 ALPINE=3.20.3
 ALPINE_MINI=3.20
 
-KERNEL=6.6.47
-LINUX_HARDENED=v6.6.47-hardened1
+KERNEL=6.6.54
+LINUX_HARDENED=v6.6.54-hardened1
 
 .PHONY: build
 
