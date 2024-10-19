@@ -15,6 +15,7 @@
 -A INPUT -j REJECT --reject-with icmp-proto-unreachable
 -A OUTPUT -p udp -m owner --uid-owner $I2PD_ID -j ACCEPT
 -A OUTPUT -p tcp -m owner --uid-owner $I2PD_ID -j ACCEPT
+-A OUTPUT -p udp -m owner --uid-owner $DNSCRYPT_ID -j ACCEPT
 -A OUTPUT -p tcp -m owner --uid-owner $DNSCRYPT_ID -j ACCEPT
 -A OUTPUT -p udp -m owner --uid-owner $CHRONY_ID -j ACCEPT
 -A OUTPUT -p tcp -m owner --uid-owner $CHRONY_ID -j ACCEPT
