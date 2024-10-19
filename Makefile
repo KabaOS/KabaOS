@@ -50,7 +50,7 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "apk update" || true
 	chroot build/alpine /bin/ash -c "apk upgrade" || true
 	chroot build/alpine /bin/ash -c "apk add alpine-sdk" || true
-	cp -r pkgs/main/ build/alpine/aports
+	cp -r pkgs/ build/alpine/aports
 	chroot build/alpine /bin/ash -c "echo '' | abuild-keygen -a" || true
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
 		mat2" || true
