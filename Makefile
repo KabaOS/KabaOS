@@ -110,6 +110,7 @@ build_alpine:
 	chroot build/alpine /bin/ash -c "touch /etc/fstab" || true
 	chroot build/alpine /bin/ash -c "mkdir -p /run/openrc" || true
 	chroot build/alpine /bin/ash -c "touch /run/openrc/softlevel" || true
+	chroot build/alpine /bin/ash -c "rc-update add local" || true
 	chroot build/alpine /bin/ash -c "rc-update add elogind" || true
 	chroot build/alpine /bin/ash -c "rc-update add networkmanager" || true
 	chroot build/alpine /bin/ash -c "rc-update add dnsmasq" || true
