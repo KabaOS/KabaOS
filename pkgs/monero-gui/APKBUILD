@@ -1,0 +1,73 @@
+# Maintainer: Arthur Melton <admin@kabaos.org>
+pkgname=monero-gui
+pkgver=0.18.3.4
+pkgrel=0
+pkgdesc="Monero: the secure, private, untraceable cryptocurrency"
+url="https://github.com/monero-project/monero-gui"
+arch="all"
+license="Custom"
+depends="qt5-qtbase qt5-qtdeclarative qt5-qtgraphicaleffects qt5-qtsvg qt5-qtxmlpatterns qt5-qtquickcontrols qt5-qtquickcontrols2"
+makedepends="make ninja automake cmake g++ boost-dev miniupnpc-dev graphviz doxygen unbound-dev libunwind-dev pkgconfig openssl-dev libcurl hidapi-dev libusb-dev zeromq-dev libgcrypt-dev qt5-qtbase-dev qt5-qtdeclarative-dev qt5-qttools-dev qt5-qtsvg-dev"
+options="!check" # no test suite
+monero_commit=b089f9ee69924882c5d14dd1a6991deb05d9d1cd
+quirc_commit=7e7ab596e4d0988faf1c12ae89c354b114181c40
+miniupnp_commit=544e6fcc73c5ad9af48a8985c94f0f1d742ef2e0
+rapidjson_commit=129d19ba7f496df5e33658527a7158c79b99c21c
+trezor_commit=bff7fdfe436c727982cc553bdfb29a9021b423b0
+RandomX_commit=102f8acf90a7649ada410de5499a7ec62e49e1da
+supercop_commit=633500ad8c8759995049ccd022107d1fa8a1bbc9
+source="$pkgname-$pkgver.tar.gz::https://github.com/monero-project/monero-gui/archive/refs/tags/v$pkgver.tar.gz
+    https://github.com/monero-project/monero/archive/$monero_commit.tar.gz
+    https://github.com/dlbeer/quirc/archive/$quirc_commit.tar.gz
+    https://github.com/miniupnp/miniupnp/archive/$miniupnp_commit.tar.gz
+    https://github.com/Tencent/rapidjson/archive/$rapidjson_commit.tar.gz
+    https://github.com/trezor/trezor-common/archive/$trezor_commit.tar.gz
+    https://github.com/tevador/RandomX/archive/$RandomX_commit.tar.gz
+    https://github.com/monero-project/supercop/archive/$supercop_commit.tar.gz
+    easylogging.patch.manual
+    "
+
+prepare() {
+    default_prepare
+
+    rm -fr monero external/quirc
+    ln -s $srcdir/monero-$monero_commit monero
+    ln -s $srcdir/quirc-$quirc_commit external/quirc
+
+    rm -fr monero/external/miniupnp monero/external/rapidjson monero/external/trezor-common monero/external/randomx monero/external/supercop
+    ln -s $srcdir/miniupnp-$miniupnp_commit monero/external/miniupnp
+    ln -s $srcdir/rapidjson-$rapidjson_commit monero/external/rapidjson
+    ln -s $srcdir/trezor-common-$trezor_commit monero/external/trezor-common
+    ln -s $srcdir/RandomX-$RandomX_commit monero/external/randomx
+    ln -s $srcdir/supercop-$supercop_commit monero/external/supercop
+
+    patch monero/external/easylogging++/easylogging++.h < $srcdir/easylogging.patch.manual
+}
+
+build() {
+    cmake -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=None \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DSTACK_TRACE=OFF \
+        -DMANUAL_SUBMODULES=1 \
+        -DWITH_UPDATER=OFF \
+        -DARCH=default
+    cmake --build build
+}
+
+package() {
+    install -Dm755 build/bin/monero-wallet-gui -t "$pkgdir"/usr/bin/
+    install -Dm755 share/org.getmonero.Monero.desktop -t "$pkgdir"/usr/share/applications/
+}
+
+sha512sums="
+edf8366b15794d5a69e68acc3c78eb502b32c68b236cf967a7760e39af42beaf558138e9e881bbb655291c1562218dbcd4313b45a90ec94221bd33c31682fd39  monero-gui-0.18.3.4.tar.gz
+a8077f97cf11728a5e3033daf0feea9004c8585013b3737ae35c636808118c7d90e451a05fe2ed3e97f7ed9eef33dd85e04552f8853d8309781fd7ed06833153  b089f9ee69924882c5d14dd1a6991deb05d9d1cd.tar.gz
+d10a783a33ffcc168a287b03250c5ac00b942ec724da641b13fe2ef3f456453b143146422b7e18129a75ce00f13d2d9e3097ac4620134d832de8be4adbbc61c2  7e7ab596e4d0988faf1c12ae89c354b114181c40.tar.gz
+c544148b2f110a84dbc69b0de2a6ff95ea3b8ad49354320c557b29a548de3e87ac52e37566b7f809bbcf0afa395e5150049dde15383d8180a52a38fd8738fdc5  544e6fcc73c5ad9af48a8985c94f0f1d742ef2e0.tar.gz
+dd4f103f84c4f32683ca9ccc82c35db3a60012c35acbb79405905c8b4e382389c52422b1a514e6128ae71f90f5eedb158f2a4f72f7c0f6025c2ef0787130bbe7  129d19ba7f496df5e33658527a7158c79b99c21c.tar.gz
+9955aa160e9a969decee598584f788e4d36e9c65f2ee730cd8f128669e86175f2189e804ca53e405871ab698ae5e683f146e59e832d8ec58fa1cb46328665ddf  bff7fdfe436c727982cc553bdfb29a9021b423b0.tar.gz
+9bbe7d106a6cd518b81f3fcae7ddc78c94cc95ba7862911a0bd291755a0b6fcabcc183235befa7806945abde8160833b1fda1fa656bde6816f3d2672c5460fb5  102f8acf90a7649ada410de5499a7ec62e49e1da.tar.gz
+06cca8d1def31aa11bf5aa42d861c4a027786f7cc494fa3ab53a2bc4bd9d1f55b2389020ba5fd1816ed277b6e4320ad8edbb3117dcf4981fc7fba655c4bbe648  633500ad8c8759995049ccd022107d1fa8a1bbc9.tar.gz
+ac80d8cb7eb81c5f07cd88b5c1260c76979d8a4fe750b94f18a46cd58e6e7d7d7907a0711d5386a2c1cbd2c5fef6b17ccf0f0d1d2459a3ed3a09d1767a4e785f  easylogging.patch.manual
+"
