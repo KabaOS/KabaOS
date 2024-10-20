@@ -209,6 +209,8 @@ CONFIG_TARGETS += config_dbus
 config_dbus:
 	mkdir -p build/alpine/run/dbus
 	mkdir -p build/alpine/var/run/dbus
+	rm -f /var/run/dbus/system_bus_socket
+	chroot build/alpine /bin/ash -c "ln -s /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
 
 CONFIG_TARGETS += config_chrony
 config_chrony:

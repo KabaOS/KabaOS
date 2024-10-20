@@ -1,0 +1,75 @@
+diff --git a/wizard/WizardDaemonSettings.qml b/wizard/WizardDaemonSettings.qml
+index bada5da3..73d3cede 100644
+--- a/wizard/WizardDaemonSettings.qml
++++ b/wizard/WizardDaemonSettings.qml
+@@ -52,7 +52,7 @@ ColumnLayout {
+     MoneroComponents.RadioButton {
+         id: localNode
+         Layout.fillWidth: true
+-        text: qsTr("Start a node automatically in background (recommended)") + translationManager.emptyString
++        text: qsTr("Start a node automatically in background") + translationManager.emptyString
+         fontSize: 16
+         checked: !appWindow.persistentSettings.useRemoteNode && !isAndroid && !isIOS
+         visible: !isAndroid && !isIOS
+@@ -189,7 +189,7 @@ ColumnLayout {
+         id: remoteNode
+         Layout.fillWidth: true
+         Layout.topMargin: 8
+-        text: qsTr("Connect to a remote node") + translationManager.emptyString
++        text: qsTr("Connect to a remote node (recommended for i2p)") + translationManager.emptyString
+         fontSize: 16
+         checked: appWindow.persistentSettings.useRemoteNode
+         onClicked: {
+diff --git a/wizard/WizardHome.qml b/wizard/WizardHome.qml
+index 9d65a7f0..9d9e0580 100644
+--- a/wizard/WizardHome.qml
++++ b/wizard/WizardHome.qml
+@@ -155,22 +155,6 @@ Rectangle {
+                 }
+             }
+ 
+-            RowLayout {
+-                Layout.fillWidth: true
+-                Layout.topMargin: 16
+-                spacing: 20
+-
+-                MoneroComponents.StandardButton {
+-                    small: true
+-                    text: qsTr("Change wallet mode") + translationManager.emptyString
+-
+-                    onClicked: {
+-                        wizardController.wizardStackView.backTransition = true;
+-                        wizardController.wizardState = 'wizardModeSelection';
+-                    }                    
+-                }
+-            }
+-
+             MoneroComponents.CheckBox2 {
+                 id: showAdvancedCheckbox
+                 Layout.topMargin: 30
+diff --git a/wizard/WizardLanguage.qml b/wizard/WizardLanguage.qml
+index 0c5b980e..4b542fd8 100644
+--- a/wizard/WizardLanguage.qml
++++ b/wizard/WizardLanguage.qml
+@@ -160,12 +160,16 @@ Rectangle {
+                 text: qsTr("Continue") + translationManager.emptyString
+ 
+                 onClicked: {
+-                    wizardController.wizardStackView.backTransition = false;
+-                    if(wizardController.skipModeSelection){
+-                        wizardStateView.state = "wizardHome"
+-                    } else {
+-                        wizardStateView.state = "wizardModeSelection"
++                    if (!persistentSettings.setPortable(true)) {
++                        appWindow.showStatusMessage(qsTr("Failed to configure portable mode"), 3);
++                        return;
+                     }
++
++                    logger.resetLogFilePath(true);
++                    appWindow.changeWalletMode(2);
++                    appWindow.persistentSettings.pruneBlockchain = true;
++                    wizardController.wizardStackView.backTransition = false;
++                    wizardController.wizardState = 'wizardHome';
+                 }
+             }
+ 

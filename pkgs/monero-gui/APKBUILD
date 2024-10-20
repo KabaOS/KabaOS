@@ -25,6 +25,7 @@ source="$pkgname-$pkgver.tar.gz::https://github.com/monero-project/monero-gui/ar
     https://github.com/tevador/RandomX/archive/$RandomX_commit.tar.gz
     https://github.com/monero-project/supercop/archive/$supercop_commit.tar.gz
     easylogging.patch.manual
+    small_setup.patch.manual
     "
 
 prepare() {
@@ -42,6 +43,7 @@ prepare() {
     ln -s $srcdir/supercop-$supercop_commit monero/external/supercop
 
     patch monero/external/easylogging++/easylogging++.h < $srcdir/easylogging.patch.manual
+    patch -p1 -i $srcdir/small_setup.patch.manual
 }
 
 build() {
@@ -70,4 +72,5 @@ dd4f103f84c4f32683ca9ccc82c35db3a60012c35acbb79405905c8b4e382389c52422b1a514e612
 9bbe7d106a6cd518b81f3fcae7ddc78c94cc95ba7862911a0bd291755a0b6fcabcc183235befa7806945abde8160833b1fda1fa656bde6816f3d2672c5460fb5  102f8acf90a7649ada410de5499a7ec62e49e1da.tar.gz
 06cca8d1def31aa11bf5aa42d861c4a027786f7cc494fa3ab53a2bc4bd9d1f55b2389020ba5fd1816ed277b6e4320ad8edbb3117dcf4981fc7fba655c4bbe648  633500ad8c8759995049ccd022107d1fa8a1bbc9.tar.gz
 ac80d8cb7eb81c5f07cd88b5c1260c76979d8a4fe750b94f18a46cd58e6e7d7d7907a0711d5386a2c1cbd2c5fef6b17ccf0f0d1d2459a3ed3a09d1767a4e785f  easylogging.patch.manual
+1beefd0dcd70f8542be3a63d5016ee144722c7e856fa8d8823d86f47f014e8eec98774786bcc1a3ddf36c253c162593680217e51f5b811cce5fbf67ba2ffaa26  small_setup.patch.manual
 "
