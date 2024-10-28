@@ -21,7 +21,7 @@ apk add bison curl flex g++ gcc gmp-dev grub grub-efi grub-bios linux-headers \
 You can download the repository with the following.
 
 ```
-git clone https://github.com/arthurmelton/KabaOS
+git clone https://github.com/KabaOS/KabaOS
 cd KabaOS
 ```
 
