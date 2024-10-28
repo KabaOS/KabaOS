@@ -193,6 +193,7 @@ create_img:
 
 build_iso:
 	sed -i 's/$$HASH/$(shell sha256sum build/mnt/alpine.zst.squashfs | cut -c-64)/g' build/mnt/boot/grub/grub.cfg
+	if [[ "x$(DEBUG)" == "xy" ]]; then sed -i 's/loglevel=0/DEBUG=1/g' build/mnt/boot/grub/grub.cfg; fi
 	grub-mkrescue --compress=xz -o KabaOS.iso build/mnt -- -volid KabaOS
 
 # CONFIG

@@ -1,8 +1,11 @@
 #!/bin/ash
 
-exec &> /dev/null
-
 mount -t proc none /proc
+
+if [[ "x$(cat /proc/cmdline | cut -f4 -d ' ' | cut -c 7-)" != "x1" ]]; then
+    exec &> /dev/null
+fi
+
 mount -t sysfs none /sys
 mount -t devtmpfs none /dev
 

@@ -56,4 +56,10 @@ rfkill unblock wifi
 openrc
 hostname OS
 
+if [[ "x$(cat /proc/cmdline | cut -f4 -d ' ' | cut -c 7-)" == "x1" ]]; then
+    echo
+    echo "ENTER THE COMMAND \"exit\" TO CONTINUE WITH BOOTING"
+    /bin/ash
+fi
+
 agetty -cJn -a Kaba tty1 linux
