@@ -226,6 +226,12 @@ config_dbus:
 	rm -f /var/run/dbus/system_bus_socket
 	chroot build/alpine /bin/ash -c "ln -s /var/run/dbus/system_bus_socket /run/dbus/system_bus_socket" || true
 
+CONFIG_TARGETS += config_dnscrypt_proxy
+config_dnscrypt_proxy:
+	mkdir -p build/alpine/run/dnscrypt-proxy
+	sed -i 's/^pidfile="\/run\/$${RC_SVCNAME}.pid"/pidfile="\/run\/dnscrypt-proxy\/dnscrypt-proxy.pid"/' build/alpine/etc/init.d/dnscrypt-proxy
+	sed -i 's/^capabilities=".*//' build/alpine/etc/init.d/dnscrypt-proxy
+
 CONFIG_TARGETS += config_chrony
 config_chrony:
 	mkdir -p build/alpine/var/run/chrony

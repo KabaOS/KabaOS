@@ -23,6 +23,7 @@ GLOBAL="--new-session $(ro_bind "/usr/share/bwrap/$program") $(lib_exe "/usr/sha
 
 case "$program" in
     i2pd) c="$(share net) $(bind /var/lib/i2pd) $(ro_bind /etc/i2pd) $(bind /var/log/i2pd/i2pd.log) $(ro_bind /etc/ssl/openssl.cnf) $(bind /run/i2pd/)";;
+    dnscrypt-proxy) c="$(share net) $(bind /etc/dnscrypt-proxy) $(bind /run/dnscrypt-proxy) $(bind /var/log/dnscrypt-proxy) $(bind /var/cache/dnscrypt-proxy) --cap-add cap_net_bind_service";;
     *)
         echo "Program has not been configured yet" >> /dev/stdout
         exit 1
@@ -31,10 +32,10 @@ esac
 
 # strace if debug
 if [[ "x$(cat /proc/cmdline | cut -f4 -d ' ' | cut -c 7-)" == "x1" ]]; then
-    GLOBAL="$GLOBAL $(ro_bind "$(which strace)") $(lib_exe "$(which strace)") $(bind /tmp/strace-$program.log)"
-    c="$c -- strace -o /tmp/strace-$program.log"
-    touch "/tmp/strace-$program.log"
-    chmod 777 "/tmp/strace-$program.log"
+    GLOBAL="$GLOBAL $(ro_bind "$(which strace)") $(lib_exe "$(which strace)")"
+    c="$c -- strace"
+    exec &> "/tmp/strace-$program.log"
+    set -o xtrace
 fi
 
 bwrap $GLOBAL $c -- /usr/share/bwrap/$program "$@"
