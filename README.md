@@ -1,5 +1,5 @@
 # KabaOS
-A Security-Focused Live OS Powered by I2P
+A Security-Focused Live OS for I2P
 
 KabaOS is a live operating system built on Alpine Linux, designed with
 privacy and security at its core. All network traffic is routed through the
