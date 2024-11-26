@@ -46,6 +46,11 @@ sysctl net.ipv6.conf.default.use_tempaddr=2
 sysctl vm.mmap_rnd_bits=32
 sysctl vm.mmap_rnd_compat_bits=16
 
+if [[ "x$(cat /proc/cmdline | cut -f4 -d ' ' | cut -c 7-)" == "x1" ]]; then
+    # Enable strace on debugging
+    echo 1 > /proc/sys/kernel/yama/ptrace_scope
+fi
+
 iptables-restore < /root/iptables.rules
 
 /sbin/kloak &

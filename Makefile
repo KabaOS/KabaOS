@@ -97,6 +97,7 @@ build_alpine:
 		xfce4-terminal \
 		xinit \
 		xorg-server" || true
+	if [[ "x$(DEBUG)" == "xy" ]]; then chroot build/alpine /bin/ash -c "apk add strace" || true; fi
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/testing \
 		hardened-malloc" || true
 	chroot build/alpine /bin/ash -c "apk add --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
@@ -201,6 +202,18 @@ build_iso:
 CONFIG_TARGETS += config_apk
 config_apk:
 	rm -rf build/alpine/etc/apk
+
+CONFIG_TARGETS += config_bwrap
+config_bwrap:
+	mkdir -p build/alpine/usr/share/bwrap/
+	cp config/bwrap.sh build/alpine/usr/share/bwrap/
+	chroot build/alpine /bin/ash -c "for i in \$$(cat /usr/share/bwrap/bwrap.sh | grep -o \"^    [A-Za-z0-9\-][A-Za-z0-9\-]*\" | cut -c 5-); do \
+			export \"tmp=\$$(which \"\$$i\")\"; \
+			if [[ ! -L \"\$$tmp\" ]]; then \
+				mv \"\$$tmp\" /usr/share/bwrap; \
+				ln -s /usr/share/bwrap/bwrap.sh \"\$$tmp\"; \
+			fi; \
+		done" || true
 
 CONFIG_TARGETS += config_default
 config_default:
