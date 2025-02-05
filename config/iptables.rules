@@ -27,10 +27,14 @@ COMMIT
 :OUTPUT ACCEPT [0:0]
 :POSTROUTING ACCEPT [0:0]
 -A OUTPUT -p tcp -m owner --uid-owner $I2PD_ID -j ACCEPT
+-A OUTPUT -p udp -m owner --uid-owner $I2PD_ID -j ACCEPT
 -A OUTPUT -p tcp -m owner --uid-owner $DNSCRYPT_ID -j ACCEPT
+-A OUTPUT -p udp -m owner --uid-owner $DNSCRYPT_ID -j ACCEPT
 -A OUTPUT -p tcp -m owner --uid-owner $CHRONY_ID -j ACCEPT
+-A OUTPUT -p udp -m owner --uid-owner $CHRONY_ID -j ACCEPT
 -A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport 4447 -j ACCEPT
 -A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport 7070 -j ACCEPT
 -A OUTPUT -d 127.0.0.1/32 -p tcp -m tcp --dport 7656 -j ACCEPT
 -A OUTPUT -p tcp -j DNAT --to-destination 127.0.0.1:4444
+-A OUTPUT -p udp --dport 53 -j DNAT --to 127.0.0.1:1053
 COMMIT

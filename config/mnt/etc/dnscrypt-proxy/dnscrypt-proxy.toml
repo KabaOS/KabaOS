@@ -1,4 +1,4 @@
-listen_addresses = ['127.0.0.1:1053']
+listen_addresses = ['127.0.0.1:53']
 server_names = ['dnscrypt-ip4-filter-pri', 'dnscrypt-ip4-filter-alt', 'dnscrypt-ip4-filter-alt2', 'dnscrypt-ip6-filter-pri', 'dnscrypt-ip6-filter-alt', 'dnscrypt-ip6-filter-alt2']
 
 # https://quad9.net/dnscrypt/quad9-resolvers-dnscrypt.md
