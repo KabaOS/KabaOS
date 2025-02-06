@@ -1,11 +1,13 @@
 #!/bin/sh
 
 ro_bind () {
+    mkdir -p "$1"
     echo "--ro-bind $1 $1"
 }
 
 
 bind () {
+    mkdir -p "$1"
     echo "--bind $1 $1"
 }
 
@@ -23,7 +25,8 @@ GLOBAL="--new-session $(ro_bind "/usr/share/bwrap/$program") $(lib_exe "/usr/sha
 
 case "$program" in
     i2pd) c="$(share net) $(bind /var/lib/i2pd) $(ro_bind /etc/i2pd) $(bind /var/log/i2pd/i2pd.log) $(ro_bind /etc/ssl/openssl.cnf) $(bind /run/i2pd/)";;
-    dnscrypt-proxy) c="$(share net) $(bind /etc/dnscrypt-proxy) $(bind /run/dnscrypt-proxy) $(bind /var/log/dnscrypt-proxy) $(bind /var/cache/dnscrypt-proxy) --cap-add cap_net_bind_service";;
+    dnscrypt-proxy) c="$(share net) $(bind /etc/dnscrypt-proxy) $(bind /run/dnscrypt-proxy) $(bind /var/log/dnscrypt-proxy) $(bind /var/cache/dnscrypt-proxy)";;
+    librewolf) c="$(share net) $(ro_bind /usr/lib/librewolf/) $(ro_bind /bin/sh) $(lib_exe /bin/sh) $(ro_bind /usr/lib/librewolf/librewolf) $(lib_exe /usr/lib/librewolf/librewolf) $(bind /home/Kaba/.librewolf) $(bind /home/Kaba/.cache/librewolf) --proc /proc $(for i in /usr/lib/librewolf/*.so; do printf "%s " "$(lib_exe "$i")"; done) $(ro_bind /home/Kaba/.Xauthority) --dev /dev $(lib_exe /usr/lib/libstdc++.so.6) $(ro_bind /usr/share/icu/) $(ro_bind /usr/share/fonts)";;
     *)
         echo "Program has not been configured yet" >> /dev/stdout
         exit 1
