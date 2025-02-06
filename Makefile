@@ -109,6 +109,7 @@ build_alpine:
 		kleopatra \
 		nheko \
 		obfuscate \
+		thunderbird \
 		pidgin" || true
 	chroot build/alpine /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools alpine-sdk" || true
 	chroot build/alpine /bin/ash -c "rc-update add udev" || true
