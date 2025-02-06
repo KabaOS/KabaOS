@@ -9,8 +9,8 @@ export JOBS=$(shell nproc)
 
 # VERSIONS
 
-ALPINE=3.20.3
-ALPINE_MINI=3.20
+ALPINE=3.21.2
+ALPINE_MINI=3.21
 
 KERNEL=6.6.54
 LINUX_HARDENED=v6.6.54-hardened1
@@ -290,6 +290,7 @@ config_user_init:
 
 CONFIG_TARGETS += config_home
 config_home:
+	mkdir -p build/alpine/home/Kaba/.cache
 	chroot build/alpine /bin/ash -c 'chown -R $$(id -u Kaba):$$(id -g Kaba) /home/Kaba'
 
 clean:

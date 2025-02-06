@@ -4,6 +4,9 @@ mount -o nosuid,nodev,noexec,hidepid=2 -t proc none /proc
 mount -t sysfs none /sys
 mount -t devtmpfs dev /dev -o mode=0755,nosuid
 
+mkdir /tmp
+chmod 777 /tmp
+
 /bin/ash -c "inotifywait -e delete_self '$(cat /var/root)' && poweroff" &
 
 sysctl fs.protected_fifos=2
