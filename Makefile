@@ -135,7 +135,7 @@ build_alpine:
 
 finish_alpine:
 	mkdir -p build/alpine/dev
-	chroot build/alpine /bin/ash -c "rm -rf /lib/apk /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history /root/.abuild" || true
+	chroot build/alpine /bin/ash -c "rm -rf /lib/apk /usr/share/apk /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history /root/.abuild" || true
 	mksquashfs build/alpine build/mnt/alpine.zst.squashfs -noappend -comp zstd $(shell if [ "$(FAST)" != "y" ]; then echo "-Xcompression-level 22"; fi)
 
 # WHEREACE
@@ -178,7 +178,7 @@ build_initramfs:
 		wireless-regdb \
 		zstd" || true
 	chroot build/initramfs /bin/ash -c "apk del alpine-baselayout alpine-keys apk-tools" || true
-	chroot build/initramfs /bin/ash -c "rm -rf /etc /lib/apk /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
+	chroot build/initramfs /bin/ash -c "rm -rf /etc /lib/apk /usr/share/apk /var/cache/* /root/.cache /root/.ICEauthority /root/.ash_history" || true
 	cp init/initramfs.sh build/initramfs/init
 	chmod +x build/initramfs/init
 	rm -rf build/initramfs/etc/resolv.conf
