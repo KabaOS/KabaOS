@@ -23,7 +23,7 @@ build() {
 }
 
 package() {
-    install -Dm755 "$srcdir"/kloak-"$commit"/kloak -t "$pkgdir"/sbin/
+    install -Dm755 "$srcdir"/kloak-"$commit"/kloak -t "$pkgdir"/usr/sbin/
 }
 
 sha512sums="

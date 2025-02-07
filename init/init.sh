@@ -57,7 +57,7 @@ fi
 
 iptables-restore < /root/iptables.rules
 
-/sbin/kloak &
+/usr/sbin/kloak &
 
 rfkill block all
 rfkill unblock wifi

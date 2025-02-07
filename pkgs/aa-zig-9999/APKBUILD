@@ -24,9 +24,9 @@ build() {
 }
 
 package() {
-    install -Dm755 "$srcdir"/zig/zig -t "$pkgdir"/bin/
-    mkdir -p "$pkgdir"/lib
-    cp -r "$srcdir"/zig/lib "$pkgdir"/lib/zig
+    install -Dm755 "$srcdir"/zig/zig -t "$pkgdir"/usr/bin/
+    mkdir -p "$pkgdir"/usr/lib
+    cp -r "$srcdir"/zig/lib "$pkgdir"/usr/lib/zig
 }
 
 sha512sums="

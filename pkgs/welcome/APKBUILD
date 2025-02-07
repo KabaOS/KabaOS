@@ -23,7 +23,7 @@ build() {
 }
 
 package() {
-    install -Dm755 "$srcdir"/Welcome-"$commit"/zig-out/bin/welcome -t "$pkgdir"/bin/
+    install -Dm755 "$srcdir"/Welcome-"$commit"/zig-out/bin/welcome -t "$pkgdir"/usr/bin/
 }
 
 sha512sums="

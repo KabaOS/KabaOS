@@ -27,7 +27,7 @@ build() {
 }
 
 package() {
-    install -Dm755 "$srcdir"/Eepshare-"$commit"/zig-out/bin/eepshare -t "$pkgdir"/bin/
+    install -Dm755 "$srcdir"/Eepshare-"$commit"/zig-out/bin/eepshare -t "$pkgdir"/usr/bin/
 }
 
 sha512sums="
