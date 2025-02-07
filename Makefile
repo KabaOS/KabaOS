@@ -245,6 +245,12 @@ config_firmware:
 	cp -r build/initramfs/lib/firmware/regulatory.db* build/initramfs/lib/firmware2
 	rm -r build/initramfs/lib/firmware
 	mv build/initramfs/lib/firmware2 build/initramfs/lib/firmware
+	chroot build/initramfs /bin/ash -c "cd /lib/firmware/; \
+	for i in \$$(ls | sed -nE 's/^(iwlwifi-.*)\d+\.ucode(.zst)?$$/\1/p' | sort | uniq); do \
+		for x in \$$(ls | sed -nE \"s/^\$$i.*/\0/p\" | sort -n | sed '$$ d'); do \
+			rm \"\$$x\"; \
+		done; \
+	done"
 	cd build/initramfs/lib/firmware && cat ../../../WHENCE | grep '^File: ' | cut -c7- | xargs -I{} zstd -v --exclude-compressed -T$(JOBS) $(ZSTD_ARGS) --progress --rm "{}" || true
 
 CONFIG_TARGETS += config_i2pd
